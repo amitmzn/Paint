@@ -63,6 +63,14 @@ page 76060 "PTV Paint Setup"
                 {
                     ToolTip = 'Specifies that barcode scanning is available when the invoice has no store setup row.';
                 }
+                field("Role Center Heading"; Rec."Role Center Heading")
+                {
+                    ToolTip = 'Specifies whether the Fast Sales role center shows the default heading, a custom heading, or no heading.';
+                }
+                field("Custom Role Center Heading"; Rec."Custom Role Center Heading")
+                {
+                    ToolTip = 'Specifies the heading text when Role Center Heading is Custom.';
+                }
             }
             group(Quarantine)
             {
