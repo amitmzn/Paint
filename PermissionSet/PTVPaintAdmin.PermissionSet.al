@@ -12,6 +12,8 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         tabledata "PTV Substitute Item" = RIMD,
         tabledata "PTV BOM Instruction" = RIMD,
         tabledata "PTV QC Paint Spec" = RIMD,
+        tabledata "PTV Fast Sales Store" = RIMD,
+        tabledata "User Setup" = RM,
         tabledata "Qlty. Test" = RIMD,
         tabledata "Qlty. Inspection Result" = RIMD,
         tabledata "Qlty. Inspection Template Hdr." = RIMD,
@@ -27,6 +29,7 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         table "PTV Substitute Item" = X,
         table "PTV BOM Instruction" = X,
         table "PTV QC Paint Spec" = X,
+        table "PTV Fast Sales Store" = X,
         page "PTV Paint Setup" = X,
         page "PTV Paint Products" = X,
         page "PTV Shades" = X,
@@ -37,6 +40,11 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         page "PTV BOM Instructions" = X,
         page "PTV QC Paint Specs" = X,
         page "PTV QC Paint Spec Subform" = X,
+        page "PTV Fast Sales Stores" = X,
+        page "PTV Fast Sales Invoice" = X,
+        page "PTV Fast Sales Inv. Subform" = X,
+        page "PTV Fast Sales Invoices" = X,
+        page "User Setup" = X,
         report "PTV Batch Sheet" = X,
         report "PTV GRN Receipt" = X,
         report "PTV Item Expiry & Non-Moving" = X,
@@ -58,5 +66,6 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         codeunit "PTV QC Spec-Template Sync" = X,
         codeunit "PTV QC Invoice Gate" = X,
         codeunit "PTV Sales PSP Propagation" = X,
-        codeunit "PTV OTIF Subscriber" = X;
+        codeunit "PTV OTIF Subscriber" = X,
+        codeunit "PTV Fast Sales Mgt" = X;
 }
