@@ -102,6 +102,83 @@ codeunit 76214 "PTV Fast Sales Mgt"
         SalesLine := ExistingLine;
     end;
 
+    /// <summary>
+    /// Lot or serial numbers must be entered when outbound tracking is on and no number series assigns them.
+    /// </summary>
+    procedure RequiresManualTracking(SalesLine: Record "Sales Line"): Boolean
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        if (SalesLine.Type <> SalesLine.Type::Item) or (SalesLine."No." = '') then
+            exit(false);
+        Item.SetLoadFields("Item Tracking Code");
+        if not Item.Get(SalesLine."No.") then
+            exit(false);
+        if Item."Item Tracking Code" = '' then
+            exit(false);
+        ItemTrackingCode.SetLoadFields(
+            "Lot Sales Outbound Tracking", "SN Sales Outbound Tracking", "Lot Nos.", "SN Nos.");
+        if not ItemTrackingCode.Get(Item."Item Tracking Code") then
+            exit(false);
+        exit(
+            (ItemTrackingCode."Lot Sales Outbound Tracking" and (ItemTrackingCode."Lot Nos." = '')) or
+            (ItemTrackingCode."SN Sales Outbound Tracking" and (ItemTrackingCode."SN Nos." = '')));
+    end;
+
+    /// <summary>
+    /// Opens the item tracking lines page for a saved line that already has a quantity.
+    /// </summary>
+    procedure OpenItemTracking(var SalesLine: Record "Sales Line")
+    var
+        LineNotReadyErr: Label 'Enter the item and quantity before item tracking.';
+    begin
+        if (SalesLine."Line No." = 0) or (SalesLine."No." = '') or (SalesLine.Quantity = 0) then
+            Error(LineNotReadyErr);
+        SalesLine.OpenItemTrackingLines();
+    end;
+
+    /// <summary>
+    /// Returns the entered lot or serial numbers, or a prompt when manual tracking is still empty.
+    /// </summary>
+    procedure TrackingStatusText(SalesLine: Record "Sales Line"): Text[100]
+    var
+        ReservationEntry: Record "Reservation Entry";
+        StatusText: Text;
+        FirstNo: Code[50];
+        EntryCount: Integer;
+        EnterLotLbl: Label 'Enter lot';
+        MoreLotsLbl: Label '%1 (+%2)', Comment = '%1 = first lot or serial number, %2 = additional count';
+    begin
+        if not RequiresManualTracking(SalesLine) then
+            exit('');
+        if SalesLine."Line No." = 0 then
+            exit(EnterLotLbl);
+
+        ReservationEntry.SetRange("Source Type", Database::"Sales Line");
+        ReservationEntry.SetRange("Source Subtype", SalesLine."Document Type".AsInteger());
+        ReservationEntry.SetRange("Source ID", SalesLine."Document No.");
+        ReservationEntry.SetRange("Source Ref. No.", SalesLine."Line No.");
+        ReservationEntry.SetRange(Positive, false);
+        ReservationEntry.SetFilter("Item Tracking", '<>%1', ReservationEntry."Item Tracking"::None);
+        if ReservationEntry.FindSet() then
+            repeat
+                EntryCount += 1;
+                if EntryCount = 1 then
+                    if ReservationEntry."Lot No." <> '' then
+                        FirstNo := ReservationEntry."Lot No."
+                    else
+                        FirstNo := ReservationEntry."Serial No.";
+            until ReservationEntry.Next() = 0;
+
+        if EntryCount = 0 then
+            exit(EnterLotLbl);
+        if EntryCount = 1 then
+            exit(CopyStr(FirstNo, 1, 100));
+        StatusText := StrSubstNo(MoreLotsLbl, FirstNo, EntryCount - 1);
+        exit(CopyStr(StatusText, 1, 100));
+    end;
+
     local procedure ResolveContext(var LocationCode: Code[10]; var CustomerNo: Code[20]; var RespCenter: Code[10])
     var
         UserSetup: Record "User Setup";
