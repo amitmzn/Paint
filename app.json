@@ -1,0 +1,44 @@
+{
+  "id": "4bcfb29f-363f-4810-9ba0-04d9d1d7739a",
+  "name": "Paint Vertical",
+  "publisher": "Alletec",
+  "version": "1.1.0.0",
+  "brief": "Paint manufacturing and distribution for Business Central.",
+  "description": "Product, shade and pack taxonomy, specific-gravity conversions, and a thin paint layer on Microsoft Quality Management.",
+  "privacyStatement": "https://www.alletec.com",
+  "EULA": "https://www.alletec.com",
+  "help": "https://www.alletec.com",
+  "url": "https://www.alletec.com",
+  "dependencies": [
+    {
+      "id": "bc7b3891-f61b-4883-bbb3-384cdef88bec",
+      "name": "Quality Management",
+      "publisher": "Microsoft",
+      "version": "27.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "27.0.0.0",
+  "application": "27.0.0.0",
+  "idRanges": [
+    {
+      "from": 76000,
+      "to": 76999
+    },
+    {
+      "from": 77000,
+      "to": 77999
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "includeSourceInSymbolFile": true,
+    "allowDownloadingSource": true
+  },
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ],
+  "target": "Cloud",
+  "runtime": "14.0"
+}
