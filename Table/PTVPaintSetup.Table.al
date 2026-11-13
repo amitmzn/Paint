@@ -81,6 +81,16 @@ table 76000 "PTV Paint Setup"
             Caption = 'Barcode Scanning';
             DataClassification = CustomerContent;
         }
+        field(76013; "Role Center Heading"; Enum "PTV Role Center Heading")
+        {
+            Caption = 'Role Center Heading';
+            DataClassification = CustomerContent;
+        }
+        field(76014; "Custom Role Center Heading"; Text[100])
+        {
+            Caption = 'Custom Heading';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys

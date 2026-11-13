@@ -275,4 +275,19 @@ codeunit 76214 "PTV Fast Sales Mgt"
             exit(LastLine."Line No." + 10000);
         exit(10000);
     end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Invoice Header", OnBeforeInsertEvent, '', false, false)]
+    local procedure MarkPostedFastSales(var Rec: Record "Sales Invoice Header"; RunTrigger: Boolean)
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        if Rec.IsTemporary then
+            exit;
+        if Rec."Pre-Assigned No." = '' then
+            exit;
+        if not SalesHeader.Get(SalesHeader."Document Type"::Invoice, Rec."Pre-Assigned No.") then
+            exit;
+        if SalesHeader."PTV Fast Sales" then
+            Rec."PTV Fast Sales" := true;
+    end;
 }
