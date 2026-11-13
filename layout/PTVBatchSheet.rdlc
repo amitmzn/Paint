@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="DataSource">
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString />
+      </ConnectionProperties>
+      <rd:DataSourceID>3c1d4a2e-7b6f-4c2a-9e11-paintvertical</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+          <Textbox Name="Title">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>Paint Vertical</Value>
+                    <Style />
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>Title</rd:DefaultName>
+            <Top>0in</Top>
+            <Left>0in</Left>
+            <Height>0.3in</Height>
+            <Width>6in</Width>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+        </ReportItems>
+        <Height>1in</Height>
+        <Style />
+      </Body>
+      <Width>6in</Width>
+      <Page>
+        <Style />
+      </Page>
+    </ReportSection>
+  </ReportSections>
+  <Language>en-US</Language>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <rd:ReportUnitType>Inch</rd:ReportUnitType>
+  <rd:ReportID>8f4e2c10-6a3b-4d55-9c77-paintvertical02</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="OrderNo">
+          <DataField>OrderNo</DataField>
+        </Field>
+        <Field Name="BatchNo">
+          <DataField>BatchNo</DataField>
+        </Field>
+        <Field Name="FormulaNo">
+          <DataField>FormulaNo</DataField>
+        </Field>
+        <Field Name="ShadeCode">
+          <DataField>ShadeCode</DataField>
+        </Field>
+        <Field Name="SpecificGravity">
+          <DataField>SpecificGravity</DataField>
+        </Field>
+        <Field Name="SpecificGravityFormat">
+          <DataField>SpecificGravityFormat</DataField>
+        </Field>
+        <Field Name="SourceNo">
+          <DataField>SourceNo</DataField>
+        </Field>
+        <Field Name="Quantity">
+          <DataField>Quantity</DataField>
+        </Field>
+        <Field Name="QuantityFormat">
+          <DataField>QuantityFormat</DataField>
+        </Field>
+        <Field Name="TargetKg">
+          <DataField>TargetKg</DataField>
+        </Field>
+        <Field Name="TargetKgFormat">
+          <DataField>TargetKgFormat</DataField>
+        </Field>
+        <Field Name="LabL">
+          <DataField>LabL</DataField>
+        </Field>
+        <Field Name="LabLFormat">
+          <DataField>LabLFormat</DataField>
+        </Field>
+        <Field Name="Laba">
+          <DataField>Laba</DataField>
+        </Field>
+        <Field Name="LabaFormat">
+          <DataField>LabaFormat</DataField>
+        </Field>
+        <Field Name="Labb">
+          <DataField>Labb</DataField>
+        </Field>
+        <Field Name="LabbFormat">
+          <DataField>LabbFormat</DataField>
+        </Field>
+        <Field Name="LineItemNo">
+          <DataField>LineItemNo</DataField>
+        </Field>
+        <Field Name="BomNo">
+          <DataField>BomNo</DataField>
+        </Field>
+        <Field Name="BomVersion">
+          <DataField>BomVersion</DataField>
+        </Field>
+        <Field Name="ComponentItemNo">
+          <DataField>ComponentItemNo</DataField>
+        </Field>
+        <Field Name="ComponentDescription">
+          <DataField>ComponentDescription</DataField>
+        </Field>
+        <Field Name="ComponentQty">
+          <DataField>ComponentQty</DataField>
+        </Field>
+        <Field Name="ComponentQtyFormat">
+          <DataField>ComponentQtyFormat</DataField>
+        </Field>
+        <Field Name="ComponentUom">
+          <DataField>ComponentUom</DataField>
+        </Field>
+        <Field Name="ReservedLot">
+          <DataField>ReservedLot</DataField>
+        </Field>
+        <Field Name="StepNo">
+          <DataField>StepNo</DataField>
+        </Field>
+        <Field Name="InstructionText">
+          <DataField>InstructionText</DataField>
+        </Field>
+        <Field Name="MinTemp">
+          <DataField>MinTemp</DataField>
+        </Field>
+        <Field Name="MinTempFormat">
+          <DataField>MinTempFormat</DataField>
+        </Field>
+        <Field Name="MaxTemp">
+          <DataField>MaxTemp</DataField>
+        </Field>
+        <Field Name="MaxTempFormat">
+          <DataField>MaxTempFormat</DataField>
+        </Field>
+        <Field Name="Rpm">
+          <DataField>Rpm</DataField>
+        </Field>
+        <Field Name="RpmFormat">
+          <DataField>RpmFormat</DataField>
+        </Field>
+        <Field Name="DurationMin">
+          <DataField>DurationMin</DataField>
+        </Field>
+        <Field Name="DurationMinFormat">
+          <DataField>DurationMinFormat</DataField>
+        </Field>
+        <Field Name="QcCheckpoint">
+          <DataField>QcCheckpoint</DataField>
+        </Field>
+        <Field Name="TestCode">
+          <DataField>TestCode</DataField>
+        </Field>
+        <Field Name="TestDescription">
+          <DataField>TestDescription</DataField>
+        </Field>
+        <Field Name="TestUom">
+          <DataField>TestUom</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>

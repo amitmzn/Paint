@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="DataSource">
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString />
+      </ConnectionProperties>
+      <rd:DataSourceID>3c1d4a2e-7b6f-4c2a-9e11-ptvrebate01</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+          <Textbox Name="Title">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>Scheme Payout &amp; Mix Analysis</Value>
+                    <Style />
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>Title</rd:DefaultName>
+            <Top>0in</Top>
+            <Left>0in</Left>
+            <Height>0.3in</Height>
+            <Width>6in</Width>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+        </ReportItems>
+        <Height>1in</Height>
+        <Style />
+      </Body>
+      <Width>6in</Width>
+      <Page>
+        <Style />
+      </Page>
+    </ReportSection>
+  </ReportSections>
+  <Language>en-US</Language>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <rd:ReportUnitType>Inch</rd:ReportUnitType>
+  <rd:ReportID>8f4e2c10-6a3b-4d55-9c77-ptvrebate001</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="EntryNo">
+          <DataField>EntryNo</DataField>
+        </Field>
+        <Field Name="SchemeCode">
+          <DataField>SchemeCode</DataField>
+        </Field>
+        <Field Name="CustomerNo">
+          <DataField>CustomerNo</DataField>
+        </Field>
+        <Field Name="CustomerName">
+          <DataField>CustomerName</DataField>
+        </Field>
+        <Field Name="SchemeProductGroup">
+          <DataField>SchemeProductGroup</DataField>
+        </Field>
+        <Field Name="PeriodStartDate">
+          <DataField>PeriodStartDate</DataField>
+        </Field>
+        <Field Name="PeriodEndDate">
+          <DataField>PeriodEndDate</DataField>
+        </Field>
+        <Field Name="EligibleQty">
+          <DataField>EligibleQty</DataField>
+        </Field>
+        <Field Name="EligibleQtyFormat">
+          <DataField>EligibleQtyFormat</DataField>
+        </Field>
+        <Field Name="NetSalesValue">
+          <DataField>NetSalesValue</DataField>
+        </Field>
+        <Field Name="NetSalesValueFormat">
+          <DataField>NetSalesValueFormat</DataField>
+        </Field>
+        <Field Name="PriorYearQty">
+          <DataField>PriorYearQty</DataField>
+        </Field>
+        <Field Name="PriorYearQtyFormat">
+          <DataField>PriorYearQtyFormat</DataField>
+        </Field>
+        <Field Name="PriorYearValue">
+          <DataField>PriorYearValue</DataField>
+        </Field>
+        <Field Name="PriorYearValueFormat">
+          <DataField>PriorYearValueFormat</DataField>
+        </Field>
+        <Field Name="GrowthPct">
+          <DataField>GrowthPct</DataField>
+        </Field>
+        <Field Name="GrowthPctFormat">
+          <DataField>GrowthPctFormat</DataField>
+        </Field>
+        <Field Name="GrowthQualified">
+          <DataField>GrowthQualified</DataField>
+        </Field>
+        <Field Name="PaymentCleared">
+          <DataField>PaymentCleared</DataField>
+        </Field>
+        <Field Name="UnpaidInvoiceAmount">
+          <DataField>UnpaidInvoiceAmount</DataField>
+        </Field>
+        <Field Name="UnpaidInvoiceAmountFormat">
+          <DataField>UnpaidInvoiceAmountFormat</DataField>
+        </Field>
+        <Field Name="RewardChoice">
+          <DataField>RewardChoice</DataField>
+        </Field>
+        <Field Name="TotalRebateAmount">
+          <DataField>TotalRebateAmount</DataField>
+        </Field>
+        <Field Name="TotalRebateAmountFormat">
+          <DataField>TotalRebateAmountFormat</DataField>
+        </Field>
+        <Field Name="FOCQuantity">
+          <DataField>FOCQuantity</DataField>
+        </Field>
+        <Field Name="FOCQuantityFormat">
+          <DataField>FOCQuantityFormat</DataField>
+        </Field>
+        <Field Name="TripDescription">
+          <DataField>TripDescription</DataField>
+        </Field>
+        <Field Name="LuxuryMixPct">
+          <DataField>LuxuryMixPct</DataField>
+        </Field>
+        <Field Name="LuxuryMixPctFormat">
+          <DataField>LuxuryMixPctFormat</DataField>
+        </Field>
+        <Field Name="PremiumMixPct">
+          <DataField>PremiumMixPct</DataField>
+        </Field>
+        <Field Name="PremiumMixPctFormat">
+          <DataField>PremiumMixPctFormat</DataField>
+        </Field>
+        <Field Name="BudgetMixPct">
+          <DataField>BudgetMixPct</DataField>
+        </Field>
+        <Field Name="BudgetMixPctFormat">
+          <DataField>BudgetMixPctFormat</DataField>
+        </Field>
+        <Field Name="Status">
+          <DataField>Status</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>
