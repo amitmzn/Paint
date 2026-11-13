@@ -52,6 +52,18 @@ page 76060 "PTV Paint Setup"
                     ToolTip = 'Specifies the number series used when the SKU matrix creates items.';
                 }
             }
+            group(FastSales)
+            {
+                Caption = 'Fast Sales';
+                field("Default Cash Customer"; Rec."Default Cash Customer")
+                {
+                    ToolTip = 'Specifies the cash customer used when the user has no store on User Setup.';
+                }
+                field("Fast Sales Barcode"; Rec."Fast Sales Barcode")
+                {
+                    ToolTip = 'Specifies that barcode scanning is available when the invoice has no store setup row.';
+                }
+            }
             group(Quarantine)
             {
                 Caption = 'Quarantine';
@@ -63,6 +75,21 @@ page 76060 "PTV Paint Setup"
                 {
                     ToolTip = 'Specifies the bin that mirrors the Quality Management quarantine bin.';
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(FastSalesStores)
+            {
+                ApplicationArea = All;
+                Caption = 'Fast Sales Stores';
+                Image = Setup;
+                RunObject = page "PTV Fast Sales Stores";
+                ToolTip = 'Set the cash customer, responsibility centre, and barcode scanning for each store.';
             }
         }
     }

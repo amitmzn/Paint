@@ -70,6 +70,17 @@ table 76000 "PTV Paint Setup"
             DataClassification = CustomerContent;
             TableRelation = "No. Series";
         }
+        field(76011; "Default Cash Customer"; Code[20])
+        {
+            Caption = 'Default Cash Customer';
+            DataClassification = CustomerContent;
+            TableRelation = Customer."No.";
+        }
+        field(76012; "Fast Sales Barcode"; Boolean)
+        {
+            Caption = 'Barcode Scanning';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys

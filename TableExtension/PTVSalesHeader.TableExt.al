@@ -12,5 +12,11 @@ tableextension 76031 "PTV Sales Header" extends "Sales Header"
             Caption = 'Dispatch Info';
             DataClassification = CustomerContent;
         }
+        field(76002; "PTV Fast Sales"; Boolean)
+        {
+            Caption = 'Fast Sales';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
 }
