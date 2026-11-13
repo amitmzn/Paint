@@ -12,6 +12,9 @@ permissionset 76274 "PTV-PAINT-SALES"
         tabledata "PTV Fast Sales Store" = R,
         tabledata "User Setup" = R,
         tabledata "Item Reference" = R,
+        tabledata "Item Tracking Code" = R,
+        tabledata "Reservation Entry" = RIMD,
+        tabledata "Lot No. Information" = RIMD,
         report "PTV OTIF Scorecard" = X,
         report "PTV Sales Margin by Product" = X,
         report "PTV Production vs Despatch" = X,
@@ -21,5 +24,6 @@ permissionset 76274 "PTV-PAINT-SALES"
         codeunit "PTV Fast Sales Mgt" = X,
         page "PTV Fast Sales Invoice" = X,
         page "PTV Fast Sales Inv. Subform" = X,
-        page "PTV Fast Sales Invoices" = X;
+        page "PTV Fast Sales Invoices" = X,
+        page "Item Tracking Lines" = X;
 }

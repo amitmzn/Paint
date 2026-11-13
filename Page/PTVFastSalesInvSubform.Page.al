@@ -63,6 +63,7 @@ page 76072 "PTV Fast Sales Inv. Subform"
                         if Rec.Quantity = 0 then
                             Rec.Validate(Quantity, 1);
                         Rec.Modify(true);
+                        RefreshTracking();
                     end;
                 }
                 field(Description; Rec.Description)
@@ -85,6 +86,41 @@ page 76072 "PTV Fast Sales Inv. Subform"
                 {
                     ToolTip = 'Specifies the line amount.';
                 }
+                field(TrackingStatus; TrackingStatus)
+                {
+                    Caption = 'Lot No.';
+                    DrillDown = true;
+                    Editable = false;
+                    ToolTip = 'Specifies the lot or serial numbers. Shown only when the item uses manual tracking. Choose the value to enter tracking.';
+                    Visible = ManualTracking;
+
+                    trigger OnDrillDown()
+                    begin
+                        OpenTracking();
+                    end;
+                }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(ItemTrackingLines)
+            {
+                ApplicationArea = All;
+                Caption = 'Item Tracking Lines';
+                Enabled = ManualTracking;
+                Image = ItemTrackingLines;
+                ShortCutKey = 'Ctrl+Alt+I';
+                ToolTip = 'Enter lot or serial numbers when this item uses manual tracking.';
+                Visible = ManualTracking;
+
+                trigger OnAction()
+                begin
+                    OpenTracking();
+                end;
             }
         }
     }
@@ -92,7 +128,9 @@ page 76072 "PTV Fast Sales Inv. Subform"
     var
         Barcode: Code[50];
         ItemNo: Code[20];
+        TrackingStatus: Text[100];
         BarcodeVisible: Boolean;
+        ManualTracking: Boolean;
 
     trigger OnOpenPage()
     begin
@@ -100,16 +138,20 @@ page 76072 "PTV Fast Sales Inv. Subform"
     end;
 
     trigger OnAfterGetRecord()
+    var
+        FastSalesMgt: Codeunit "PTV Fast Sales Mgt";
     begin
         ItemNo := '';
         if Rec.Type = Rec.Type::Item then
             ItemNo := Rec."No.";
+        TrackingStatus := FastSalesMgt.TrackingStatusText(Rec);
         RefreshBarcodeVisibility();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         RefreshBarcodeVisibility();
+        RefreshTracking();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -127,6 +169,23 @@ page 76072 "PTV Fast Sales Inv. Subform"
         if LastLine.FindLast() then
             exit(LastLine."Line No." + 10000);
         exit(10000);
+    end;
+
+    local procedure OpenTracking()
+    var
+        FastSalesMgt: Codeunit "PTV Fast Sales Mgt";
+    begin
+        FastSalesMgt.OpenItemTracking(Rec);
+        RefreshTracking();
+        CurrPage.Update(false);
+    end;
+
+    local procedure RefreshTracking()
+    var
+        FastSalesMgt: Codeunit "PTV Fast Sales Mgt";
+    begin
+        ManualTracking := FastSalesMgt.RequiresManualTracking(Rec);
+        TrackingStatus := FastSalesMgt.TrackingStatusText(Rec);
     end;
 
     local procedure RefreshBarcodeVisibility()
