@@ -181,15 +181,14 @@ codeunit 77206 "PTV Subsidy Mgt"
         SalesCrLine: Record "Sales Cr.Memo Line";
         GrowthPayGate: Codeunit "PTV Scheme Growth & Pay Gate";
         UOMMgt: Codeunit "PTV UOM Mgt";
-        LineLitres: Decimal;
-        LineSG: Decimal;
     begin
         SalesInvLine.SetCurrentKey("Sell-to Customer No.", "Posting Date", Type);
         SalesInvLine.SetRange("Sell-to Customer No.", CustomerNo);
         SalesInvLine.SetRange("Posting Date", StartDate, EndDate);
         SalesInvLine.SetRange(Type, SalesInvLine.Type::Item);
         SalesInvLine.SetLoadFields(
-            "No.", "Unit of Measure Code", "Location Code", Quantity, Amount, "Amount Including VAT");
+            "No.", "Unit of Measure Code", "Location Code", Quantity, "Quantity (Base)", Amount, "Amount Including VAT",
+            "PTV Quantity Litres", "PTV Litres per Base Unit");
         if SalesInvLine.FindSet() then
             repeat
                 if GrowthPayGate.MatchesTextFilter(SalesInvLine."Location Code", LocationFilter) then begin
@@ -198,12 +197,7 @@ codeunit 77206 "PTV Subsidy Mgt"
                     else
                         SalesValue += SalesInvLine.Amount;
 
-                    LineLitres := UOMMgt.LineQuantityToLitres(SalesInvLine."No.", SalesInvLine."Unit of Measure Code", SalesInvLine.Quantity);
-                    LineSG := UOMMgt.GetSpecificGravity(SalesInvLine."No.");
-                    if LineSG > 0 then
-                        SalesQty += UOMMgt.WeightFromVolume(LineLitres, LineSG)
-                    else
-                        SalesQty += LineLitres;
+                    SalesQty += UOMMgt.PostedInvoiceLitres(SalesInvLine);
                 end;
             until SalesInvLine.Next() = 0;
 
@@ -212,7 +206,8 @@ codeunit 77206 "PTV Subsidy Mgt"
         SalesCrLine.SetRange("Posting Date", StartDate, EndDate);
         SalesCrLine.SetRange(Type, SalesCrLine.Type::Item);
         SalesCrLine.SetLoadFields(
-            "No.", "Unit of Measure Code", "Location Code", Quantity, Amount, "Amount Including VAT");
+            "No.", "Unit of Measure Code", "Location Code", Quantity, "Quantity (Base)", Amount, "Amount Including VAT",
+            "PTV Quantity Litres", "PTV Litres per Base Unit");
         if SalesCrLine.FindSet() then
             repeat
                 if GrowthPayGate.MatchesTextFilter(SalesCrLine."Location Code", LocationFilter) then begin
@@ -221,12 +216,7 @@ codeunit 77206 "PTV Subsidy Mgt"
                     else
                         SalesValue -= SalesCrLine.Amount;
 
-                    LineLitres := UOMMgt.LineQuantityToLitres(SalesCrLine."No.", SalesCrLine."Unit of Measure Code", SalesCrLine.Quantity);
-                    LineSG := UOMMgt.GetSpecificGravity(SalesCrLine."No.");
-                    if LineSG > 0 then
-                        SalesQty -= UOMMgt.WeightFromVolume(LineLitres, LineSG)
-                    else
-                        SalesQty -= LineLitres;
+                    SalesQty -= UOMMgt.PostedCreditMemoLitres(SalesCrLine);
                 end;
             until SalesCrLine.Next() = 0;
     end;
@@ -248,6 +238,7 @@ codeunit 77206 "PTV Subsidy Mgt"
     local procedure CreateSingleCreditMemo(SubsidyHdr: Record "PTV Subsidy Header"; var SubLine: Record "PTV Subsidy Line"; RebateSetup: Record "PTV Rebate Setup"; GLAccountNo: Code[20])
     var
         SalesHeader: Record "Sales Header";
+        DocumentMgt: Codeunit "PTV Scheme Document Mgt";
         SalesLine: Record "Sales Line";
         LedgerEntry: Record "PTV Subsidy Ledger Entry";
         LineDesc: Text;
@@ -280,10 +271,8 @@ codeunit 77206 "PTV Subsidy Mgt"
         else
             LineDesc := StrSubstNo('%1 - %2', SubsidyHdr.Code, SubLine."Subsidy Type");
         SalesLine.Description := CopyStr(LineDesc, 1, MaxStrLen(SalesLine.Description));
-        if RebateSetup."Suppress VAT on Credit Notes" then begin
-            SalesLine.Validate("VAT Bus. Posting Group", '');
-            SalesLine.Validate("VAT Prod. Posting Group", '');
-        end;
+        if RebateSetup."Suppress VAT on Credit Notes" then
+            DocumentMgt.ApplyZeroVAT(SalesLine, RebateSetup);
         SalesLine.Modify(true);
 
         SubLine."Credit Memo No." := SalesHeader."No.";
