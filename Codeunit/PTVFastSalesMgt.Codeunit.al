@@ -13,6 +13,7 @@ codeunit 76214 "PTV Fast Sales Mgt"
         SalesHeader.Init();
         SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
         SalesHeader."PTV Fast Sales" := true;
+        SalesHeader."PTV Customer Type" := SalesHeader."PTV Customer Type"::Cash;
         SalesHeader.Insert(true);
         SalesHeader.Validate("Sell-to Customer No.", CustomerNo);
         if LocationCode <> '' then
@@ -24,6 +25,7 @@ codeunit 76214 "PTV Fast Sales Mgt"
         else
             SalesHeader.Validate("Responsibility Center", '');
         SalesHeader."PTV Fast Sales" := true;
+        SalesHeader."PTV Customer Type" := SalesHeader."PTV Customer Type"::Cash;
         SalesHeader.Modify(true);
     end;
 
@@ -49,7 +51,7 @@ codeunit 76214 "PTV Fast Sales Mgt"
     var
         ItemReference: Record "Item Reference";
         ExistingLine: Record "Sales Line";
-        OpenInvoiceFirstErr: Label 'Open a fast sales invoice before scanning a barcode.';
+        OpenInvoiceFirstErr: Label 'Open a counter sales invoice before scanning a barcode.';
         BarcodeNotFoundErr: Label 'Barcode %1 is not an item reference of type Bar Code.', Comment = '%1 = scanned barcode';
         BarcodeAmbiguousErr: Label 'Barcode %1 matches more than one item.', Comment = '%1 = scanned barcode';
     begin
@@ -112,18 +114,18 @@ codeunit 76214 "PTV Fast Sales Mgt"
     begin
         if (SalesLine.Type <> SalesLine.Type::Item) or (SalesLine."No." = '') then
             exit(false);
-        Item.SetLoadFields("Item Tracking Code");
+        Item.SetLoadFields("Item Tracking Code", "Lot Nos.", "Serial Nos.");
         if not Item.Get(SalesLine."No.") then
             exit(false);
         if Item."Item Tracking Code" = '' then
             exit(false);
         ItemTrackingCode.SetLoadFields(
-            "Lot Sales Outbound Tracking", "SN Sales Outbound Tracking", "Lot Nos.", "SN Nos.");
+            "Lot Sales Outbound Tracking", "SN Sales Outbound Tracking");
         if not ItemTrackingCode.Get(Item."Item Tracking Code") then
             exit(false);
         exit(
-            (ItemTrackingCode."Lot Sales Outbound Tracking" and (ItemTrackingCode."Lot Nos." = '')) or
-            (ItemTrackingCode."SN Sales Outbound Tracking" and (ItemTrackingCode."SN Nos." = '')));
+            (ItemTrackingCode."Lot Sales Outbound Tracking" and (Item."Lot Nos." = '')) or
+            (ItemTrackingCode."SN Sales Outbound Tracking" and (Item."Serial Nos." = '')));
     end;
 
     /// <summary>
@@ -184,7 +186,7 @@ codeunit 76214 "PTV Fast Sales Mgt"
         UserSetup: Record "User Setup";
         FastSalesStore: Record "PTV Fast Sales Store";
         PaintSetup: Record "PTV Paint Setup";
-        StoreNotConfiguredErr: Label 'Store %1 on User Setup has no Fast Sales Store setup.', Comment = '%1 = store location';
+        StoreNotConfiguredErr: Label 'Store %1 on User Setup has no Counter Sales Store setup.', Comment = '%1 = store location';
         StoreCustomerMissingErr: Label 'Set a cash customer for store %1.', Comment = '%1 = store location';
         DefaultCustomerMissingErr: Label 'Set a default cash customer on Paint Setup, or assign a store on User Setup.';
     begin
@@ -276,6 +278,39 @@ codeunit 76214 "PTV Fast Sales Mgt"
         exit(10000);
     end;
 
+    /// <summary>
+    /// Returns the default cash customer number for a store or setup.
+    /// </summary>
+    procedure GetDefaultCashCustomer(LocationCode: Code[10]): Code[20]
+    var
+        UserSetup: Record "User Setup";
+        FastSalesStore: Record "PTV Fast Sales Store";
+        PaintSetup: Record "PTV Paint Setup";
+    begin
+        if (LocationCode <> '') and FastSalesStore.Get(LocationCode) and (FastSalesStore."Cash Customer No." <> '') then
+            exit(FastSalesStore."Cash Customer No.");
+        if UserSetup.Get(UserId()) and (UserSetup."PTV Store Location Code" <> '') then
+            if FastSalesStore.Get(UserSetup."PTV Store Location Code") and (FastSalesStore."Cash Customer No." <> '') then
+                exit(FastSalesStore."Cash Customer No.");
+        PaintSetup.SetLoadFields("Default Cash Customer");
+        PaintSetup.GetSetup();
+        exit(PaintSetup."Default Cash Customer");
+    end;
+
+    /// <summary>
+    /// Returns whether credit sales are allowed for the given store.
+    /// </summary>
+    procedure IsCreditSalesAllowed(LocationCode: Code[10]): Boolean
+    var
+        FastSalesStore: Record "PTV Fast Sales Store";
+    begin
+        if LocationCode = '' then
+            exit(true);
+        if not FastSalesStore.Get(LocationCode) then
+            exit(true);
+        exit(FastSalesStore."Allow Credit Sales");
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Sales Invoice Header", OnBeforeInsertEvent, '', false, false)]
     local procedure MarkPostedFastSales(var Rec: Record "Sales Invoice Header"; RunTrigger: Boolean)
     var
@@ -287,7 +322,11 @@ codeunit 76214 "PTV Fast Sales Mgt"
             exit;
         if not SalesHeader.Get(SalesHeader."Document Type"::Invoice, Rec."Pre-Assigned No.") then
             exit;
-        if SalesHeader."PTV Fast Sales" then
+        if SalesHeader."PTV Fast Sales" then begin
             Rec."PTV Fast Sales" := true;
+            Rec."PTV Customer Type" := SalesHeader."PTV Customer Type";
+        end;
+        if SalesHeader."PTV Mobile No." <> '' then
+            Rec."PTV Mobile No." := SalesHeader."PTV Mobile No.";
     end;
 }

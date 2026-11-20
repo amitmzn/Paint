@@ -1,6 +1,6 @@
 table 76009 "PTV Fast Sales Cue"
 {
-    Caption = 'Fast Sales Cue';
+    Caption = 'Counter Sales Cue';
     DataClassification = CustomerContent;
 
     fields

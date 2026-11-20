@@ -14,9 +14,20 @@ tableextension 76031 "PTV Sales Header" extends "Sales Header"
         }
         field(76002; "PTV Fast Sales"; Boolean)
         {
-            Caption = 'Fast Sales';
+            Caption = 'Counter Sales';
             DataClassification = CustomerContent;
             Editable = false;
+        }
+        field(76003; "PTV Customer Type"; Enum "PTV Counter Customer Type")
+        {
+            Caption = 'Customer Type';
+            DataClassification = CustomerContent;
+        }
+        field(76004; "PTV Mobile No."; Text[30])
+        {
+            Caption = 'Mobile No.';
+            DataClassification = CustomerContent;
+            ExtendedDatatype = PhoneNo;
         }
     }
 }

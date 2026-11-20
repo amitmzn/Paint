@@ -1,7 +1,7 @@
 page 76077 "PTV Posted Fast Sales"
 {
     ApplicationArea = All;
-    Caption = 'Posted Fast Sales Invoices';
+    Caption = 'Posted Counter Sales Invoices';
     Editable = false;
     PageType = List;
     SourceTable = "Sales Invoice Header";
@@ -22,10 +22,27 @@ page 76077 "PTV Posted Fast Sales"
                 {
                     ToolTip = 'Specifies the posting date.';
                 }
+                field("PTV Customer Type"; Rec."PTV Customer Type")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Customer Type';
+                    ToolTip = 'Specifies whether this was a cash sale or a credit sale.';
+                }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
-                    Caption = 'Cash Customer';
-                    ToolTip = 'Specifies the cash customer.';
+                    Caption = 'Customer No.';
+                    ToolTip = 'Specifies the customer number.';
+                }
+                field("Sell-to Customer Name"; Rec."Sell-to Customer Name")
+                {
+                    Caption = 'Customer Name';
+                    ToolTip = 'Specifies the customer name.';
+                }
+                field("PTV Mobile No."; Rec."PTV Mobile No.")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Mobile No.';
+                    ToolTip = 'Specifies the customer mobile phone number.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {

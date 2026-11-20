@@ -64,6 +64,31 @@ table 76006 "PTV BOM Instruction"
             Caption = 'QC Checkpoint';
             DataClassification = CustomerContent;
         }
+        field(76010; "Instruction Code"; Code[20])
+        {
+            Caption = 'Instruction Code';
+            DataClassification = CustomerContent;
+            TableRelation = "PTV Instruction Master".Code;
+
+            trigger OnValidate()
+            var
+                InstructionMaster: Record "PTV Instruction Master";
+            begin
+                if InstructionMaster.Get("Instruction Code") then begin
+                    if Instruction = '' then
+                        Instruction := InstructionMaster."Standard Instruction Text";
+                    if "Min Temp C" = 0 then
+                        "Min Temp C" := InstructionMaster."Min Temp C";
+                    if "Max Temp C" = 0 then
+                        "Max Temp C" := InstructionMaster."Max Temp C";
+                    if "Agitation RPM" = 0 then
+                        "Agitation RPM" := InstructionMaster."Agitation RPM";
+                    if "Duration Min" = 0 then
+                        "Duration Min" := InstructionMaster."Duration Min";
+                    "QC Checkpoint" := InstructionMaster."QC Checkpoint";
+                end;
+            end;
+        }
     }
 
     keys

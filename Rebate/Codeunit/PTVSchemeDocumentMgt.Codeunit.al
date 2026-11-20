@@ -1,5 +1,7 @@
 codeunit 77203 "PTV Scheme Document Mgt"
 {
+    Permissions = tabledata "PTV Scheme Entitlement" = RIMD,
+                  tabledata "PTV Scheme Applied Entry" = RIMD;
     /// <summary>
     /// Re-evaluates payment clearance on an entitlement.
     /// </summary>
@@ -20,6 +22,39 @@ codeunit 77203 "PTV Scheme Document Mgt"
         exit(Cleared);
     end;
 
+    procedure ReviewFOCEntitlement(var Entitlement: Record "PTV Scheme Entitlement")
+    var
+        Scheme: Record "PTV Scheme Header";
+        ReviewErr: Label 'Only an open FOC entitlement configured for FOC review can be reviewed.';
+    begin
+        Entitlement.LockTable();
+        Entitlement.Get(Entitlement."Entry No.");
+        Scheme.Get(Entitlement."Scheme Code");
+        if not Scheme."Require FOC Review" or
+           (Entitlement.Status <> Entitlement.Status::Open) or
+           (Entitlement."Reward Choice" <> Entitlement."Reward Choice"::"FOC Order")
+        then
+            Error(ReviewErr);
+        Entitlement."FOC Reviewed By" := CopyStr(UserId(), 1, MaxStrLen(Entitlement."FOC Reviewed By"));
+        Entitlement."FOC Reviewed On" := CurrentDateTime();
+        Entitlement.Status := Entitlement.Status::"Pending Approval";
+        Entitlement.Modify(true);
+    end;
+
+    procedure ApplyZeroVAT(var SalesLine: Record "Sales Line"; Setup: Record "PTV Rebate Setup")
+    var
+        VATSetup: Record "VAT Posting Setup";
+    begin
+        Setup.TestField("Zero VAT Business Group");
+        Setup.TestField("Zero VAT Product Group");
+        VATSetup.Get(Setup."Zero VAT Business Group", Setup."Zero VAT Product Group");
+        VATSetup.TestField("VAT Calculation Type", VATSetup."VAT Calculation Type"::"Normal VAT");
+        VATSetup.TestField("VAT %", 0);
+        SalesLine.Validate("VAT Bus. Posting Group", Setup."Zero VAT Business Group");
+        SalesLine.Validate("VAT Prod. Posting Group", Setup."Zero VAT Product Group");
+        SalesLine.TestField("VAT %", 0);
+    end;
+
     /// <summary>
     /// Approves an open entitlement after verifying growth, optional mix, and payment clearance.
     /// </summary>
@@ -30,11 +65,17 @@ codeunit 77203 "PTV Scheme Document Mgt"
         UnpaidInvoicesErr: Label 'Customer %1 has unpaid invoices of %2 for the scheme period. Payment must be received before approval.';
         MixNotMetErr: Label 'Customer %1 did not meet the configured product mix thresholds (Luxury %2%, Premium %3%, Budget %4%).';
         StatusErr: Label 'Only Open or Pending Approval entitlements can be approved.';
+        ReviewRequiredErr: Label 'FOC approval requires a cost-of-sales review by a different user.';
     begin
+        Entitlement.LockTable();
+        Entitlement.Get(Entitlement."Entry No.");
         if not (Entitlement.Status in [Entitlement.Status::Open, Entitlement.Status::"Pending Approval"]) then
             Error(StatusErr);
 
         SchemeHdr.Get(Entitlement."Scheme Code");
+        if SchemeHdr."Require FOC Review" and (Entitlement."Reward Choice" = Entitlement."Reward Choice"::"FOC Order") then
+            if (Entitlement."FOC Reviewed On" = 0DT) or (Entitlement."FOC Reviewed By" = UserId()) then
+                Error(ReviewRequiredErr);
         if SchemeHdr."Require Growth Check" and not Entitlement."Growth Qualified" then
             Error(GrowthNotMetErr, Entitlement."Customer No.", Entitlement."Growth %");
 
@@ -65,12 +106,15 @@ codeunit 77203 "PTV Scheme Document Mgt"
         SalesLine: Record "Sales Line";
         AppliedEntry: Record "PTV Scheme Applied Entry";
         GLAccountNo: Code[20];
+        PaymentChangedErr: Label 'Customer %1 no longer passes the payment gate.';
         NotApprovedErr: Label 'Entitlement %1 must be Approved before creating a credit memo.';
         WrongChoiceErr: Label 'Entitlement %1 has Reward Choice = %2; Credit Note is required.';
         AlreadyCreatedErr: Label 'Credit Memo %1 has already been created for entitlement %2.';
         NoAmountErr: Label 'Total Rebate Amount must be greater than zero.';
         MissingGLErr: Label 'Configure Rebate G/L Account on Scheme %1 or in Rebate & Scheme Setup.';
     begin
+        Entitlement.LockTable();
+        Entitlement.Get(Entitlement."Entry No.");
         if Entitlement.Status <> Entitlement.Status::Approved then
             Error(NotApprovedErr, Entitlement."Entry No.");
         if Entitlement."Reward Choice" <> Entitlement."Reward Choice"::"Credit Note" then
@@ -81,6 +125,8 @@ codeunit 77203 "PTV Scheme Document Mgt"
             Error(NoAmountErr);
 
         SchemeHdr.Get(Entitlement."Scheme Code");
+        if not RefreshPaymentStatus(Entitlement) then
+            Error(PaymentChangedErr, Entitlement."Customer No.");
         RebateSetup.GetSetup();
         GLAccountNo := SchemeHdr."Rebate G/L Account";
         if GLAccountNo = '' then
@@ -91,9 +137,11 @@ codeunit 77203 "PTV Scheme Document Mgt"
         SalesHeader.Init();
         SalesHeader."Document Type" := SalesHeader."Document Type"::"Credit Memo";
         SalesHeader."No." := '';
+        SalesHeader."PTV Scheme Entitlement Entry" := Entitlement."Entry No.";
         SalesHeader.Insert(true);
         SalesHeader.Validate("Sell-to Customer No.", Entitlement."Customer No.");
         SalesHeader.Validate("Posting Date", WorkDate());
+        SalesHeader.Validate("Prices Including VAT", false);
         if SchemeHdr."Posted Credit Memo Nos." <> '' then
             SalesHeader.Validate("Posting No. Series", SchemeHdr."Posted Credit Memo Nos.");
         SalesHeader."External Document No." := CopyStr(SchemeHdr.Code, 1, MaxStrLen(SalesHeader."External Document No."));
@@ -108,12 +156,11 @@ codeunit 77203 "PTV Scheme Document Mgt"
         SalesLine.Validate(Type, SalesLine.Type::"G/L Account");
         SalesLine.Validate("No.", GLAccountNo);
         SalesLine.Validate(Quantity, 1);
+        SalesLine.Validate("Allow Invoice Disc.", false);
         SalesLine.Validate("Unit Price", Entitlement."Total Rebate Amount");
         SalesLine.Description := CopyStr(StrSubstNo('Scheme %1 - %2', SchemeHdr.Code, SchemeHdr.Description), 1, MaxStrLen(SalesLine.Description));
-        if SchemeHdr."Suppress VAT on Credit Notes" or RebateSetup."Suppress VAT on Credit Notes" then begin
-            SalesLine.Validate("VAT Bus. Posting Group", '');
-            SalesLine.Validate("VAT Prod. Posting Group", '');
-        end;
+        if SchemeHdr."Suppress VAT on Credit Notes" or RebateSetup."Suppress VAT on Credit Notes" then
+            ApplyZeroVAT(SalesLine, RebateSetup);
         SalesLine.Modify(true);
 
         Entitlement.Status := Entitlement.Status::"Credit Note Created";
@@ -145,11 +192,14 @@ codeunit 77203 "PTV Scheme Document Mgt"
         SalesLine: Record "Sales Line";
         AppliedEntry: Record "PTV Scheme Applied Entry";
         ReasonCode: Code[10];
+        PaymentChangedErr: Label 'Customer %1 no longer passes the payment gate.';
         NotApprovedErr: Label 'Entitlement %1 must be Approved before creating an FOC order.';
         WrongChoiceErr: Label 'Entitlement %1 has Reward Choice = %2; FOC Order is required.';
         AlreadyCreatedErr: Label 'FOC Sales Order %1 has already been created for entitlement %2.';
         NoFOCQtyErr: Label 'FOC Item No. and FOC Quantity must be populated.';
     begin
+        Entitlement.LockTable();
+        Entitlement.Get(Entitlement."Entry No.");
         if Entitlement.Status <> Entitlement.Status::Approved then
             Error(NotApprovedErr, Entitlement."Entry No.");
         if Entitlement."Reward Choice" <> Entitlement."Reward Choice"::"FOC Order" then
@@ -160,6 +210,8 @@ codeunit 77203 "PTV Scheme Document Mgt"
             Error(NoFOCQtyErr);
 
         SchemeHdr.Get(Entitlement."Scheme Code");
+        if not RefreshPaymentStatus(Entitlement) then
+            Error(PaymentChangedErr, Entitlement."Customer No.");
         RebateSetup.GetSetup();
         ReasonCode := SchemeHdr."FOC Reason Code";
         if ReasonCode = '' then
@@ -168,6 +220,7 @@ codeunit 77203 "PTV Scheme Document Mgt"
         SalesHeader.Init();
         SalesHeader."Document Type" := SalesHeader."Document Type"::Order;
         SalesHeader."No." := '';
+        SalesHeader."PTV Scheme Entitlement Entry" := Entitlement."Entry No.";
         SalesHeader.Insert(true);
         SalesHeader.Validate("Sell-to Customer No.", Entitlement."Customer No.");
         SalesHeader.Validate("Posting Date", WorkDate());
@@ -186,7 +239,11 @@ codeunit 77203 "PTV Scheme Document Mgt"
         if Entitlement."FOC Unit of Measure" <> '' then
             SalesLine.Validate("Unit of Measure Code", Entitlement."FOC Unit of Measure");
         SalesLine.Validate(Quantity, Entitlement."FOC Quantity");
+        if Entitlement."FOC Unit of Measure" = '' then
+            Entitlement."FOC Unit of Measure" := SalesLine."Unit of Measure Code";
         SalesLine.Validate("PTV FOC Item", true);
+        if SchemeHdr."Suppress VAT on FOC" then
+            ApplyZeroVAT(SalesLine, RebateSetup);
         SalesLine.Modify(true);
 
         Entitlement.Status := Entitlement.Status::"FOC Order Created";
@@ -216,6 +273,8 @@ codeunit 77203 "PTV Scheme Document Mgt"
         NotApprovedErr: Label 'Entitlement %1 must be Approved before marking the trip fulfilled.';
         WrongChoiceErr: Label 'Entitlement %1 has Reward Choice = %2; Trip / Non-Monetary is required.';
     begin
+        Entitlement.LockTable();
+        Entitlement.Get(Entitlement."Entry No.");
         if Entitlement.Status <> Entitlement.Status::Approved then
             Error(NotApprovedErr, Entitlement."Entry No.");
         if Entitlement."Reward Choice" <> Entitlement."Reward Choice"::"Trip / Non-Monetary" then

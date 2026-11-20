@@ -20,7 +20,7 @@ pageextension 76100 "PTV Item Card" extends "Item Card"
                 field("PTV Pack Code"; Rec."PTV Pack Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the pack. Validation maintains the container unit of measure.';
+                    ToolTip = 'Specifies the pack. Validation maintains the litre, kilogram, and container units of measure.';
                 }
                 field("PTV Item Role"; Rec."PTV Item Role")
                 {
@@ -97,6 +97,31 @@ pageextension 76100 "PTV Item Card" extends "Item Card"
                     ApplicationArea = All;
                     ToolTip = 'Specifies when the item was approved.';
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        addlast(Processing)
+        {
+            action(PTVRefreshPaintUOMs)
+            {
+                ApplicationArea = All;
+                Caption = 'Refresh Paint Units of Measure';
+                Image = UnitOfMeasure;
+                ToolTip = 'Updates the litre, kilogram, and container conversions from the paint pack and specific gravity.';
+
+                trigger OnAction()
+                var
+                    UOMMgt: Codeunit "PTV UOM Mgt";
+                begin
+                    Rec.TestField("PTV Pack Code");
+                    CurrPage.SaveRecord();
+                    UOMMgt.MaintainItemUOMFromPack(Rec);
+                    Rec.Modify(true);
+                    CurrPage.Update(false);
+                end;
             }
         }
     }

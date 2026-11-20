@@ -1,7 +1,7 @@
 page 76076 "PTV Fast Sales Role Center"
 {
     ApplicationArea = All;
-    Caption = 'Fast Sales';
+    Caption = 'Counter Sales';
     PageType = RoleCenter;
 
     layout
@@ -25,15 +25,15 @@ page 76076 "PTV Fast Sales Role Center"
         {
             action(FastSalesInvoices)
             {
-                Caption = 'Fast Sales Invoices';
+                Caption = 'Counter Sales Invoices';
                 RunObject = page "PTV Fast Sales Invoices";
-                ToolTip = 'Open the fast sales invoices for your responsibility centre.';
+                ToolTip = 'Open the counter sales invoices for your responsibility centre.';
             }
             action(PostedFastSales)
             {
-                Caption = 'Posted Fast Sales';
+                Caption = 'Posted Counter Sales Invoices';
                 RunObject = page "PTV Posted Fast Sales";
-                ToolTip = 'Open posted fast sales invoices for your responsibility centre.';
+                ToolTip = 'Open posted counter sales invoices for your responsibility centre.';
             }
             action(Customers)
             {
@@ -55,21 +55,21 @@ page 76076 "PTV Fast Sales Role Center"
                 Caption = 'Sales';
                 action(NewFastSalesInvoice)
                 {
-                    Caption = 'Fast Sales Invoice';
+                    Caption = 'Counter Sales Invoice';
                     RunObject = page "PTV Fast Sales Invoice";
-                    ToolTip = 'Start a fast sales invoice for the store cash customer.';
+                    ToolTip = 'Start a counter sales invoice for the store cash customer.';
                 }
                 action(OpenFastSalesInvoices)
                 {
-                    Caption = 'Fast Sales Invoices';
+                    Caption = 'Counter Sales Invoices';
                     RunObject = page "PTV Fast Sales Invoices";
-                    ToolTip = 'View open fast sales invoices.';
+                    ToolTip = 'View open counter sales invoices.';
                 }
                 action(PostedFastSalesInvoices)
                 {
-                    Caption = 'Posted Fast Sales Invoices';
+                    Caption = 'Posted Counter Sales Invoices';
                     RunObject = page "PTV Posted Fast Sales";
-                    ToolTip = 'View posted fast sales invoices.';
+                    ToolTip = 'View posted counter sales invoices.';
                 }
             }
             group(Setup)
@@ -83,7 +83,7 @@ page 76076 "PTV Fast Sales Role Center"
                 }
                 action(FastSalesStores)
                 {
-                    Caption = 'Fast Sales Stores';
+                    Caption = 'Counter Sales Stores';
                     RunObject = page "PTV Fast Sales Stores";
                     ToolTip = 'Set the cash customer and responsibility centre for each store.';
                 }
@@ -99,10 +99,10 @@ page 76076 "PTV Fast Sales Role Center"
         {
             action(NewInvoice)
             {
-                Caption = 'Fast Sales Invoice';
+                Caption = 'Counter Sales Invoice';
                 Image = NewDocument;
                 RunObject = page "PTV Fast Sales Invoice";
-                ToolTip = 'Start a fast sales invoice for the store cash customer.';
+                ToolTip = 'Start a counter sales invoice for the store cash customer.';
             }
         }
     }

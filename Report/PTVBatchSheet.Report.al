@@ -17,6 +17,7 @@ report 76150 "PTV Batch Sheet"
             column(SpecificGravity; "PTV Specific Gravity") { }
             column(SourceNo; "Source No.") { }
             column(Quantity; Quantity) { }
+            column(TargetLitres; TargetLitres) { }
             column(TargetKg; TargetKg) { }
             column(LabL; LabL) { }
             column(Laba; Laba) { }
@@ -69,9 +70,18 @@ report 76150 "PTV Batch Sheet"
             trigger OnAfterGetRecord()
             var
                 Shade: Record "PTV Shade";
+                OutputLine: Record "Prod. Order Line";
                 UomMgt: Codeunit "PTV UOM Mgt";
             begin
-                TargetKg := UomMgt.WeightFromVolume(Quantity, "PTV Specific Gravity");
+                TargetLitres := 0;
+                OutputLine.SetRange(Status, Status);
+                OutputLine.SetRange("Prod. Order No.", "No.");
+                OutputLine.SetLoadFields("Item No.", "Quantity (Base)");
+                if OutputLine.FindSet() then
+                    repeat
+                        TargetLitres += OutputLine."Quantity (Base)" * UomMgt.LitresPerBaseUnit(OutputLine."Item No.");
+                    until OutputLine.Next() = 0;
+                TargetKg := UomMgt.WeightFromVolume(TargetLitres, "PTV Specific Gravity");
                 LabL := 0;
                 Laba := 0;
                 Labb := 0;
@@ -93,9 +103,16 @@ report 76150 "PTV Batch Sheet"
             LayoutFile = './layout/PTVBatchSheet.rdlc';
             Caption = 'Batch Sheet';
         }
+        layout(Word)
+        {
+            Type = Word;
+            LayoutFile = './layout/PTVBatchSheet.docx';
+            Caption = 'Batch Sheet (Word)';
+        }
     }
 
     var
+        TargetLitres: Decimal;
         TargetKg: Decimal;
         LabL: Decimal;
         Laba: Decimal;

@@ -103,8 +103,18 @@ codeunit 77202 "PTV Scheme Growth & Pay Gate"
     /// <summary>
     /// Checks whether a sales line matches a single Scheme Line filter.
     /// </summary>
-    procedure MatchesSchemeLine(SchemeLine: Record "PTV Scheme Line"; ItemNo: Code[20]; ProductCode: Code[20]; ShadeCode: Code[20]; PackCode: Code[20]; ItemCategoryCode: Code[20]): Boolean
+    procedure MatchesSchemeLine(SchemeLine: Record "PTV Scheme Line"; ItemNo: Code[20]; ProductCode: Code[20]; ShadeCode: Code[20]; PackCode: Code[20]; ItemCategoryCode: Code[20]; ItemDiscountGroup: Code[20]; SalesUOM: Code[10]): Boolean
     begin
+        if not MatchesTextFilter(ProductCode, SchemeLine."Paint Product Filter") then
+            exit(false);
+        if not MatchesTextFilter(ShadeCode, SchemeLine."Shade Filter") then
+            exit(false);
+        if not MatchesTextFilter(PackCode, SchemeLine."Pack Filter") then
+            exit(false);
+        if (SchemeLine."Sales UOM Filter" <> '') and (SchemeLine."Sales UOM Filter" <> SalesUOM) then
+            exit(false);
+        if (SchemeLine."Item Discount Group Filter" <> '') and (SchemeLine."Item Discount Group Filter" <> ItemDiscountGroup) then
+            exit(false);
         if SchemeLine."Scheme Product Group" <> '' then
             if not MatchesProductGroup(SchemeLine."Scheme Product Group", ItemNo, ProductCode, ShadeCode, PackCode, ItemCategoryCode) then
                 exit(false);
@@ -126,7 +136,7 @@ codeunit 77202 "PTV Scheme Growth & Pay Gate"
     /// <summary>
     /// Converts a line quantity into Litres, Kilograms, or Base UOM based on scheme/group/product measure settings.
     /// </summary>
-    procedure GetMeasuredQuantity(ItemNo: Code[20]; UnitOfMeasureCode: Code[10]; Quantity: Decimal; QuantityBase: Decimal; Measure: Enum "PTV Rebate Measure"; GroupCode: Code[20]; var QtyLitres: Decimal; var QtyKg: Decimal): Decimal
+    procedure GetMeasuredQuantity(ItemNo: Code[20]; UnitOfMeasureCode: Code[10]; Quantity: Decimal; QuantityBase: Decimal; PostedLitres: Decimal; Measure: Enum "PTV Rebate Measure"; GroupCode: Code[20]; var QtyLitres: Decimal; var QtyKg: Decimal): Decimal
     var
         Item: Record Item;
         PaintProduct: Record "PTV Paint Product";
@@ -135,7 +145,7 @@ codeunit 77202 "PTV Scheme Growth & Pay Gate"
         EffectiveMeasure: Enum "PTV Rebate Measure";
         SG: Decimal;
     begin
-        QtyLitres := UOMMgt.LineQuantityToLitres(ItemNo, UnitOfMeasureCode, Quantity);
+        QtyLitres := PostedLitres;
         SG := UOMMgt.GetSpecificGravity(ItemNo);
         if UnitOfMeasureCode = 'KG' then
             QtyKg := Quantity
@@ -173,7 +183,10 @@ codeunit 77202 "PTV Scheme Growth & Pay Gate"
                 begin
                     if QtyKg <> 0 then
                         exit(QtyKg);
-                    exit(QuantityBase);
+                    if Item.Get(ItemNo) then
+                        if Item."Base Unit of Measure" = 'KG' then
+                            exit(QuantityBase);
+                    exit(0);
                 end;
             EffectiveMeasure::"Base UOM":
                 exit(QuantityBase);
@@ -201,6 +214,7 @@ codeunit 77202 "PTV Scheme Growth & Pay Gate"
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
         AppliedEntry: Record "PTV Scheme Applied Entry";
+        InvoiceHeader: Record "Sales Invoice Header";
         CheckedDocs: Dictionary of [Code[20], Boolean];
     begin
         UnpaidAmount := 0;
@@ -212,13 +226,11 @@ codeunit 77202 "PTV Scheme Growth & Pay Gate"
             CustLedgEntry.SetRange("Customer No.", CustomerNo);
             CustLedgEntry.SetRange("Document Type", CustLedgEntry."Document Type"::Invoice);
             CustLedgEntry.SetRange("Posting Date", PeriodStart, PeriodEnd);
-            CustLedgEntry.SetRange(Open, true);
-            CustLedgEntry.SetLoadFields("Document No.", "Remaining Amount");
+            SetPaymentDateFilter(CustLedgEntry, SchemeHdr."Payment Cutoff Date");
+            CustLedgEntry.SetLoadFields("Posting Date");
             if CustLedgEntry.FindSet() then
                 repeat
-                    CustLedgEntry.CalcFields("Remaining Amount");
-                    if CustLedgEntry."Remaining Amount" > 0 then
-                        UnpaidAmount += CustLedgEntry."Remaining Amount";
+                    UnpaidAmount += GetUnpaidAtCutoff(CustLedgEntry, SchemeHdr."Payment Cutoff Date");
                 until CustLedgEntry.Next() = 0;
             exit(UnpaidAmount <= 0);
         end;
@@ -233,21 +245,45 @@ codeunit 77202 "PTV Scheme Growth & Pay Gate"
                     CheckedDocs.Add(AppliedEntry."Document No.", true);
                     CustLedgEntry.Reset();
                     CustLedgEntry.SetCurrentKey("Document No.");
-                    CustLedgEntry.SetRange("Customer No.", CustomerNo);
+
                     CustLedgEntry.SetRange("Document Type", CustLedgEntry."Document Type"::Invoice);
                     CustLedgEntry.SetRange("Document No.", AppliedEntry."Document No.");
-                    CustLedgEntry.SetRange(Open, true);
-                    CustLedgEntry.SetLoadFields("Remaining Amount");
+                    if InvoiceHeader.Get(AppliedEntry."Document No.") then
+                        CustLedgEntry.SetRange("Customer No.", InvoiceHeader."Bill-to Customer No.");
+                    SetPaymentDateFilter(CustLedgEntry, SchemeHdr."Payment Cutoff Date");
+                    CustLedgEntry.SetLoadFields("Posting Date");
                     if CustLedgEntry.FindSet() then
                         repeat
-                            CustLedgEntry.CalcFields("Remaining Amount");
-                            if CustLedgEntry."Remaining Amount" > 0 then
-                                UnpaidAmount += CustLedgEntry."Remaining Amount";
+                            UnpaidAmount += GetUnpaidAtCutoff(CustLedgEntry, SchemeHdr."Payment Cutoff Date");
                         until CustLedgEntry.Next() = 0;
                 end;
             until AppliedEntry.Next() = 0;
 
         exit(UnpaidAmount <= 0);
+    end;
+
+    local procedure GetUnpaidAtCutoff(var Entry: Record "Cust. Ledger Entry"; CutoffDate: Date): Decimal
+    begin
+        if (CutoffDate <> 0D) and (Entry."Posting Date" > CutoffDate) then begin
+            Entry.SetRange("Date Filter");
+            Entry.CalcFields("Original Amount");
+            Entry.SetRange("Date Filter", 0D, CutoffDate);
+            if Entry."Original Amount" > 0 then
+                exit(Entry."Original Amount");
+        end else begin
+            Entry.CalcFields("Remaining Amount");
+            if Entry."Remaining Amount" > 0 then
+                exit(Entry."Remaining Amount");
+        end;
+        exit(0);
+    end;
+
+    local procedure SetPaymentDateFilter(var Entry: Record "Cust. Ledger Entry"; CutoffDate: Date)
+    begin
+        if CutoffDate = 0D then
+            Entry.SetRange(Open, true)
+        else
+            Entry.SetRange("Date Filter", 0D, CutoffDate);
     end;
 
     /// <summary>

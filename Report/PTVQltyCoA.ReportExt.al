@@ -20,27 +20,48 @@ reportextension 76195 "PTV Qlty. CoA" extends "Qlty. Certificate of Analysis"
             var
                 Item: Record Item;
                 Shade: Record "PTV Shade";
+                NeedsPersist: Boolean;
             begin
                 PTVShadeCode := "PTV Shade Code";
-                PTVSpecificGravity := 0;
-                PTVVoc := 0;
-                PTVSolidsWeight := 0;
-                PTVLabL := 0;
-                PTVLaba := 0;
-                PTVLabb := 0;
-                Item.SetLoadFields("PTV Specific Gravity", "PTV VOC g/L", "PTV Solids By Weight %", "PTV Shade Code");
-                if Item.Get("Source Item No.") then begin
-                    if PTVShadeCode = '' then
-                        PTVShadeCode := Item."PTV Shade Code";
-                    PTVSpecificGravity := Item."PTV Specific Gravity";
-                    PTVVoc := Item."PTV VOC g/L";
-                    PTVSolidsWeight := Item."PTV Solids By Weight %";
+                PTVSpecificGravity := "PTV Specific Gravity";
+                PTVVoc := "PTV VOC g/L";
+                PTVSolidsWeight := "PTV Solids By Weight %";
+                PTVLabL := "PTV Lab L Target";
+                PTVLaba := "PTV Lab a Target";
+                PTVLabb := "PTV Lab b Target";
+
+                // Backward-compatibility fallback if historical inspection was un-snapshotted:
+                // permanently persist snapshot on first run so future reprints never change.
+                if (PTVSpecificGravity = 0) and (PTVVoc = 0) and (PTVSolidsWeight = 0) then begin
+                    Item.SetLoadFields("PTV Specific Gravity", "PTV VOC g/L", "PTV Solids By Weight %", "PTV Shade Code");
+                    if Item.Get("Source Item No.") then begin
+                        if PTVShadeCode = '' then
+                            PTVShadeCode := Item."PTV Shade Code";
+                        PTVSpecificGravity := Item."PTV Specific Gravity";
+                        PTVVoc := Item."PTV VOC g/L";
+                        PTVSolidsWeight := Item."PTV Solids By Weight %";
+                        NeedsPersist := true;
+                    end;
                 end;
-                Shade.SetLoadFields("Lab L Target", "Lab a Target", "Lab b Target");
-                if Shade.Get(PTVShadeCode) then begin
-                    PTVLabL := Shade."Lab L Target";
-                    PTVLaba := Shade."Lab a Target";
-                    PTVLabb := Shade."Lab b Target";
+                if (PTVLabL = 0) and (PTVLaba = 0) and (PTVLabb = 0) and (PTVShadeCode <> '') then begin
+                    Shade.SetLoadFields("Lab L Target", "Lab a Target", "Lab b Target");
+                    if Shade.Get(PTVShadeCode) then begin
+                        PTVLabL := Shade."Lab L Target";
+                        PTVLaba := Shade."Lab a Target";
+                        PTVLabb := Shade."Lab b Target";
+                        NeedsPersist := true;
+                    end;
+                end;
+                if NeedsPersist then begin
+                    "PTV Specific Gravity" := PTVSpecificGravity;
+                    "PTV VOC g/L" := PTVVoc;
+                    "PTV Solids By Weight %" := PTVSolidsWeight;
+                    "PTV Lab L Target" := PTVLabL;
+                    "PTV Lab a Target" := PTVLaba;
+                    "PTV Lab b Target" := PTVLabb;
+                    if "PTV Shade Code" = '' then
+                        "PTV Shade Code" := PTVShadeCode;
+                    Modify();
                 end;
             end;
         }

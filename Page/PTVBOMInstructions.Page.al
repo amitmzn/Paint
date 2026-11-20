@@ -17,6 +17,10 @@ page 76067 "PTV BOM Instructions"
                 {
                     ToolTip = 'Specifies the shop-floor step number.';
                 }
+                field("Instruction Code"; Rec."Instruction Code")
+                {
+                    ToolTip = 'Specifies the standard instruction code from the Instruction Master.';
+                }
                 field(Instruction; Rec.Instruction)
                 {
                     ToolTip = 'Specifies the processing instruction.';

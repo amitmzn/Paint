@@ -20,6 +20,8 @@ codeunit 77205 "PTV Scheme Copy & Seed"
         TargetLine: Record "PTV Scheme Line";
         SourceSlab: Record "PTV Scheme Slab";
         TargetSlab: Record "PTV Scheme Slab";
+        SourceTarget: Record "PTV Scheme Customer Target";
+        NewTarget: Record "PTV Scheme Customer Target";
     begin
         SourceHdr.Get(SourceCode);
         TargetHdr := SourceHdr;
@@ -43,6 +45,13 @@ codeunit 77205 "PTV Scheme Copy & Seed"
                 TargetSlab."Scheme Code" := TargetHdr.Code;
                 TargetSlab.Insert(true);
             until SourceSlab.Next() = 0;
+        SourceTarget.SetRange("Scheme Code", SourceHdr.Code);
+        if SourceTarget.FindSet() then
+            repeat
+                NewTarget := SourceTarget;
+                NewTarget."Scheme Code" := TargetHdr.Code;
+                NewTarget.Insert(true);
+            until SourceTarget.Next() = 0;
     end;
 
     /// <summary>
@@ -104,6 +113,7 @@ codeunit 77205 "PTV Scheme Copy & Seed"
         Hdr."Evaluation Period" := Hdr."Evaluation Period"::Monthly;
         Hdr."Calculation Basis" := Hdr."Calculation Basis"::"Auto Kg/Ltr";
         Hdr."Trade Channel Filter" := Hdr."Trade Channel Filter"::Trade;
+        Hdr."Territory Filter" := 'KA|GA|KOL';
         Hdr."Exclude FOC Lines" := true;
         Hdr."Special Price Handling" := Hdr."Special Price Handling"::"Exclude Customer";
         Hdr."Require Growth Check" := true;
@@ -164,12 +174,14 @@ codeunit 77205 "PTV Scheme Copy & Seed"
         Hdr."Evaluation Period" := Hdr."Evaluation Period"::"Full Period";
         Hdr."Calculation Basis" := Hdr."Calculation Basis"::"Net Sales Value";
         Hdr."Trade Channel Filter" := Hdr."Trade Channel Filter"::Trade;
+        Hdr."Territory Filter" := 'KA|GA|KOL';
         Hdr."Minimum Net Value" := 100000;
         Hdr."Exclude FOC Lines" := true;
         Hdr."Special Price Handling" := Hdr."Special Price Handling"::"Exclude Line";
         Hdr."Require Growth Check" := true;
         Hdr."Growth Failure Action" := Hdr."Growth Failure Action"::"Step Down";
         Hdr."Payment Gate Mode" := Hdr."Payment Gate Mode"::"All Period Invoices";
+        Hdr."Payment Cutoff Date" := Hdr."End Date";
         Hdr."Luxury Mix Target %" := 10;
         Hdr."Premium Mix Target %" := 30;
         Hdr."Budget Mix Target %" := 60;

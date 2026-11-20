@@ -1,7 +1,7 @@
 page 76073 "PTV Fast Sales Invoices"
 {
     ApplicationArea = All;
-    Caption = 'Fast Sales Invoices';
+    Caption = 'Counter Sales Invoices';
     CardPageId = "PTV Fast Sales Invoice";
     Editable = false;
     InsertAllowed = false;
@@ -24,10 +24,27 @@ page 76073 "PTV Fast Sales Invoices"
                 {
                     ToolTip = 'Specifies the posting date.';
                 }
+                field("PTV Customer Type"; Rec."PTV Customer Type")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Customer Type';
+                    ToolTip = 'Specifies whether this is a cash sale or a credit customer sale.';
+                }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
                 {
-                    Caption = 'Cash Customer';
-                    ToolTip = 'Specifies the cash customer.';
+                    Caption = 'Customer No.';
+                    ToolTip = 'Specifies the customer number.';
+                }
+                field("Sell-to Customer Name"; Rec."Sell-to Customer Name")
+                {
+                    Caption = 'Customer Name';
+                    ToolTip = 'Specifies the customer name.';
+                }
+                field("PTV Mobile No."; Rec."PTV Mobile No.")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Mobile No.';
+                    ToolTip = 'Specifies the customer mobile phone number.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
@@ -52,7 +69,7 @@ page 76073 "PTV Fast Sales Invoices"
                 ApplicationArea = All;
                 Caption = 'New';
                 Image = New;
-                ToolTip = 'Create a fast sales invoice and select the cash customer for your store.';
+                ToolTip = 'Create a counter sales invoice and select the cash customer for your store.';
 
                 trigger OnAction()
                 var

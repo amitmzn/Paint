@@ -95,8 +95,8 @@ report 76158 "PTV SKU Matrix Request"
                                 Item.Validate(Description, CopyStr(Product.Description + ' ' + Shade.Description + ' ' + Pack.Description, 1, MaxStrLen(Item.Description)));
                                 Item.Validate("PTV Product Code", Product.Code);
                                 Item.Validate("PTV Shade Code", Shade.Code);
-                                Item.Validate("PTV Pack Code", Pack.Code);
                                 Item.Validate("PTV Item Role", Item."PTV Item Role"::"FG Paint");
+                                Item.Validate("PTV Pack Code", Pack.Code);
                                 if Product."Specific Gravity" <> 0 then
                                     Item.Validate("PTV Specific Gravity", Product."Specific Gravity");
                                 Item.Modify(true);

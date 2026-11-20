@@ -4,6 +4,9 @@ permissionset 76273 "PTV-PAINT-LAB"
     Assignable = true;
     Caption = 'Paint Lab';
     Permissions =
+        page "PTV Paint Role Center" = X,
+        page "PTV Paint Headline" = X,
+        page "PTV Paint Quick Links" = X,
         tabledata "PTV QC Paint Spec" = RIMD,
         tabledata "PTV Shade" = R,
         tabledata "Qlty. Inspection Header" = RM,

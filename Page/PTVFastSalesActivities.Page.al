@@ -1,7 +1,7 @@
 page 76075 "PTV Fast Sales Activities"
 {
     ApplicationArea = All;
-    Caption = 'Fast Sales Activities';
+    Caption = 'Counter Sales Activities';
     PageType = CardPart;
     RefreshOnActivate = true;
     SourceTable = "PTV Fast Sales Cue";
@@ -17,13 +17,13 @@ page 76075 "PTV Fast Sales Activities"
                 {
                     DrillDownPageId = "PTV Fast Sales Invoices";
                     StyleExpr = OpenInvoicesStyle;
-                    ToolTip = 'Specifies how many fast sales invoices are still open for your responsibility centre.';
+                    ToolTip = 'Specifies how many counter sales invoices are still open for your responsibility centre.';
                 }
                 field("Posted Today"; Rec."Posted Today")
                 {
                     DrillDownPageId = "PTV Posted Fast Sales";
                     StyleExpr = PostedTodayStyle;
-                    ToolTip = 'Specifies how many fast sales invoices were posted today for your responsibility centre.';
+                    ToolTip = 'Specifies how many counter sales invoices were posted today for your responsibility centre.';
                 }
             }
         }

@@ -14,6 +14,11 @@ pageextension 76103 "PTV Sales Order" extends "Sales Order"
                 ApplicationArea = All;
                 ToolTip = 'Specifies dispatch information for this order.';
             }
+            field("PTV Mobile No."; Rec."PTV Mobile No.")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies the mobile phone number for this order.';
+            }
         }
     }
 }

@@ -1,5 +1,20 @@
 pageextension 76109 "PTV Item Ledger Entries" extends "Item Ledger Entries"
 {
+    layout
+    {
+        addafter(Quantity)
+        {
+            field(PTVQuantityLitres; QuantityLitres)
+            {
+                ApplicationArea = All;
+                Caption = 'Qty. in Litres';
+                DecimalPlaces = 0 : 5;
+                Editable = false;
+                ToolTip = 'Specifies the quantity in litres.';
+            }
+        }
+    }
+
     actions
     {
         addlast(Processing)
@@ -23,4 +38,14 @@ pageextension 76109 "PTV Item Ledger Entries" extends "Item Ledger Entries"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    var
+        UOMMgt: Codeunit "PTV UOM Mgt";
+    begin
+        QuantityLitres := UOMMgt.PostedLedgerLitres(Rec);
+    end;
+
+    var
+        QuantityLitres: Decimal;
 }

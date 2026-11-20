@@ -2,6 +2,17 @@ pageextension 76104 "PTV Posted Sales Inv. Subform" extends "Posted Sales Invoic
 {
     layout
     {
+        addafter(Quantity)
+        {
+            field(PTVQuantityLitres; QuantityLitres)
+            {
+                ApplicationArea = All;
+                Caption = 'Qty. in Litres';
+                DecimalPlaces = 0 : 5;
+                Editable = false;
+                ToolTip = 'Specifies the quantity in litres.';
+            }
+        }
         addlast(Control1)
         {
             field("PTV Product Code"; Rec."PTV Product Code")
@@ -21,4 +32,16 @@ pageextension 76104 "PTV Posted Sales Inv. Subform" extends "Posted Sales Invoic
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    var
+        UOMMgt: Codeunit "PTV UOM Mgt";
+    begin
+        Clear(QuantityLitres);
+        if Rec.Type = Rec.Type::Item then
+            QuantityLitres := UOMMgt.PostedInvoiceLitres(Rec);
+    end;
+
+    var
+        QuantityLitres: Decimal;
 }

@@ -57,6 +57,14 @@ page 77060 "PTV Rebate Setup"
                 {
                     ToolTip = 'Default payment clearance requirement before credit note approval.';
                 }
+                field("Zero VAT Business Group"; Rec."Zero VAT Business Group")
+                {
+                    ToolTip = 'Specifies the zero vat business group.';
+                }
+                field("Zero VAT Product Group"; Rec."Zero VAT Product Group")
+                {
+                    ToolTip = 'Specifies the zero vat product group.';
+                }
                 field("Suppress VAT on Credit Notes"; Rec."Suppress VAT on Credit Notes")
                 {
                     ToolTip = 'Clear VAT posting groups when generating scheme credit memos.';

@@ -1,6 +1,6 @@
 page 76074 "PTV Fast Sales Headline"
 {
-    Caption = 'Fast Sales Headline';
+    Caption = 'Counter Sales Headline';
     PageType = HeadlinePart;
     RefreshOnActivate = true;
 
@@ -63,9 +63,9 @@ page 76074 "PTV Fast Sales Headline"
         GreetingVisible: Boolean;
         HeadingVisible: Boolean;
         OpenInvoicesVisible: Boolean;
-        DefaultHeadingTxt: Label 'Fast Sales';
-        OpenInvoicesLbl: Label '%1 open fast sales invoices', Comment = '%1 = number of open invoices';
-        NoOpenInvoicesLbl: Label 'No open fast sales invoices';
+        DefaultHeadingTxt: Label 'Counter Sales';
+        OpenInvoicesLbl: Label '%1 open counter sales invoices', Comment = '%1 = number of open invoices';
+        NoOpenInvoicesLbl: Label 'No open counter sales invoices';
 
     local procedure LoadHeading()
     var

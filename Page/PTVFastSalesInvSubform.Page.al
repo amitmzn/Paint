@@ -41,7 +41,7 @@ page 76072 "PTV Fast Sales Inv. Subform"
 
                     trigger OnValidate()
                     var
-                        DocumentMissingErr: Label 'Open a fast sales invoice before entering an item.';
+                        DocumentMissingErr: Label 'Open a counter sales invoice before entering an item.';
                     begin
                         if Rec."Document No." = '' then
                             Error(DocumentMissingErr);
@@ -73,6 +73,13 @@ page 76072 "PTV Fast Sales Inv. Subform"
                 field(Quantity; Rec.Quantity)
                 {
                     ToolTip = 'Specifies the quantity to invoice.';
+                }
+                field(QuantityLitres; QuantityLitres)
+                {
+                    Caption = 'Qty. in Litres';
+                    DecimalPlaces = 0 : 5;
+                    Editable = false;
+                    ToolTip = 'Specifies the line quantity in litres.';
                 }
                 field("Unit of Measure Code"; Rec."Unit of Measure Code")
                 {
@@ -126,6 +133,7 @@ page 76072 "PTV Fast Sales Inv. Subform"
     }
 
     var
+        QuantityLitres: Decimal;
         Barcode: Code[50];
         ItemNo: Code[20];
         TrackingStatus: Text[100];
@@ -144,12 +152,14 @@ page 76072 "PTV Fast Sales Inv. Subform"
         ItemNo := '';
         if Rec.Type = Rec.Type::Item then
             ItemNo := Rec."No.";
+        RefreshLitres();
         TrackingStatus := FastSalesMgt.TrackingStatusText(Rec);
         RefreshBarcodeVisibility();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+        RefreshLitres();
         RefreshBarcodeVisibility();
         RefreshTracking();
     end;
@@ -158,6 +168,16 @@ page 76072 "PTV Fast Sales Inv. Subform"
     begin
         ItemNo := '';
         Barcode := '';
+        Clear(QuantityLitres);
+    end;
+
+    local procedure RefreshLitres()
+    var
+        UOMMgt: Codeunit "PTV UOM Mgt";
+    begin
+        Clear(QuantityLitres);
+        if Rec.Type = Rec.Type::Item then
+            QuantityLitres := UOMMgt.TransactionLitres(Rec."Unit of Measure Code", Rec.Quantity, Rec."Quantity (Base)", UOMMgt.LitresPerBaseUnit(Rec."No."));
     end;
 
     local procedure NextLineNo(): Integer

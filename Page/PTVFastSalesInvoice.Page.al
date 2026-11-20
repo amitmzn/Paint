@@ -1,14 +1,14 @@
 page 76071 "PTV Fast Sales Invoice"
 {
     ApplicationArea = All;
-    Caption = 'Fast Sales Invoice';
+    Caption = 'Counter Sales Invoice';
     PageType = Document;
     SourceTable = "Sales Header";
     SourceTableView = where("Document Type" = const(Invoice), "PTV Fast Sales" = const(true));
     UsageCategory = Documents;
     RefreshOnActivate = true;
     InsertAllowed = false;
-    AdditionalSearchTerms = 'POS,Cash Sale,Fast Sales';
+    AdditionalSearchTerms = 'POS,Cash Sale,Counter Sales';
 
     layout
     {
@@ -25,15 +25,76 @@ page 76071 "PTV Fast Sales Invoice"
                 {
                     ToolTip = 'Specifies the posting date.';
                 }
-                field("Sell-to Customer No."; Rec."Sell-to Customer No.")
+                field("PTV Customer Type"; Rec."PTV Customer Type")
                 {
-                    Caption = 'Cash Customer';
-                    ToolTip = 'Specifies the cash customer. A new invoice selects the customer for your store.';
+                    ApplicationArea = All;
+                    Caption = 'Customer Type';
+                    ToolTip = 'Specifies whether this is a cash sale or a credit customer sale.';
 
                     trigger OnValidate()
+                    var
+                        FastSalesMgt: Codeunit "PTV Fast Sales Mgt";
+                        DefaultCashCust: Code[20];
+                        CreditNotAllowedErr: Label 'Store %1 does not allow credit sales.', Comment = '%1 = store code';
                     begin
+                        if Rec."PTV Customer Type" = Rec."PTV Customer Type"::Credit then begin
+                            if not FastSalesMgt.IsCreditSalesAllowed(Rec."Location Code") then
+                                Error(CreditNotAllowedErr, Rec."Location Code");
+                            DefaultCashCust := FastSalesMgt.GetDefaultCashCustomer(Rec."Location Code");
+                            if (DefaultCashCust <> '') and (Rec."Sell-to Customer No." = DefaultCashCust) then begin
+                                Rec.Validate("Sell-to Customer No.", '');
+                                Rec."PTV Mobile No." := '';
+                            end;
+                        end else begin
+                            DefaultCashCust := FastSalesMgt.GetDefaultCashCustomer(Rec."Location Code");
+                            if DefaultCashCust <> '' then
+                                Rec.Validate("Sell-to Customer No.", DefaultCashCust);
+                        end;
                         CurrPage.Update(true);
                     end;
+                }
+                field("Sell-to Customer No."; Rec."Sell-to Customer No.")
+                {
+                    Caption = 'Customer No.';
+                    ToolTip = 'Specifies the customer. For cash sales, selects the store cash customer. For credit sales, select the registered customer.';
+
+                    trigger OnValidate()
+                    var
+                        Customer: Record Customer;
+                        FastSalesMgt: Codeunit "PTV Fast Sales Mgt";
+                        DefaultCashCust: Code[20];
+                        CreditNotAllowedErr: Label 'Store %1 does not allow credit sales.', Comment = '%1 = store code';
+                    begin
+                        DefaultCashCust := FastSalesMgt.GetDefaultCashCustomer(Rec."Location Code");
+                        if Rec."Sell-to Customer No." <> '' then begin
+                            if (DefaultCashCust <> '') and (Rec."Sell-to Customer No." = DefaultCashCust) then
+                                Rec."PTV Customer Type" := Rec."PTV Customer Type"::Cash
+                            else begin
+                                if not FastSalesMgt.IsCreditSalesAllowed(Rec."Location Code") then
+                                    Error(CreditNotAllowedErr, Rec."Location Code");
+                                Rec."PTV Customer Type" := Rec."PTV Customer Type"::Credit;
+                            end;
+                            if Customer.Get(Rec."Sell-to Customer No.") then begin
+                                if Customer."Mobile Phone No." <> '' then
+                                    Rec."PTV Mobile No." := Customer."Mobile Phone No."
+                                else if (Customer."Phone No." <> '') and (Rec."PTV Customer Type" = Rec."PTV Customer Type"::Credit) then
+                                    Rec."PTV Mobile No." := Customer."Phone No.";
+                            end;
+                        end else
+                            Rec."PTV Mobile No." := '';
+                        CurrPage.Update(true);
+                    end;
+                }
+                field("Sell-to Customer Name"; Rec."Sell-to Customer Name")
+                {
+                    Caption = 'Customer Name';
+                    ToolTip = 'Specifies the name of the customer.';
+                }
+                field("PTV Mobile No."; Rec."PTV Mobile No.")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Mobile No.';
+                    ToolTip = 'Specifies the customer mobile phone number. For credit customers it defaults from the customer card; for cash sales it can be entered directly.';
                 }
                 field("Location Code"; Rec."Location Code")
                 {
@@ -41,7 +102,15 @@ page 76071 "PTV Fast Sales Invoice"
                     ToolTip = 'Specifies the store location.';
 
                     trigger OnValidate()
+                    var
+                        FastSalesMgt: Codeunit "PTV Fast Sales Mgt";
+                        DefaultCashCust: Code[20];
                     begin
+                        if Rec."PTV Customer Type" = Rec."PTV Customer Type"::Cash then begin
+                            DefaultCashCust := FastSalesMgt.GetDefaultCashCustomer(Rec."Location Code");
+                            if (DefaultCashCust <> '') and (Rec."Sell-to Customer No." <> DefaultCashCust) then
+                                Rec.Validate("Sell-to Customer No.", DefaultCashCust);
+                        end;
                         CurrPage.Update(true);
                     end;
                 }
@@ -124,9 +193,12 @@ page 76071 "PTV Fast Sales Invoice"
         FastSalesMgt: Codeunit "PTV Fast Sales Mgt";
         NothingToPostErr: Label 'Enter a quantity before posting.';
         PostInvoiceQst: Label 'Post invoice %1?', Comment = '%1 = invoice number';
+        CustomerMissingErr: Label 'Select a customer before posting.';
     begin
         CurrPage.SaveRecord();
         SalesHeader.Get(Rec."Document Type", Rec."No.");
+        if SalesHeader."Sell-to Customer No." = '' then
+            Error(CustomerMissingErr);
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.SetFilter(Quantity, '<>0');

@@ -1,6 +1,6 @@
 table 76008 "PTV Fast Sales Store"
 {
-    Caption = 'Fast Sales Store';
+    Caption = 'Counter Sales Store';
     DataClassification = CustomerContent;
     LookupPageId = "PTV Fast Sales Stores";
     DrillDownPageId = "PTV Fast Sales Stores";
@@ -30,6 +30,12 @@ table 76008 "PTV Fast Sales Store"
         {
             Caption = 'Barcode Scanning';
             DataClassification = CustomerContent;
+        }
+        field(76004; "Allow Credit Sales"; Boolean)
+        {
+            Caption = 'Allow Credit Sales';
+            DataClassification = CustomerContent;
+            InitValue = true;
         }
     }
 
