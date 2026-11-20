@@ -32,23 +32,43 @@ tableextension 76043 "PTV Qlty. Inspection Header" extends "Qlty. Inspection Hea
         field(76004; "PTV Specific Gravity"; Decimal)
         {
             Caption = 'Specific Gravity';
-            FieldClass = FlowField;
-            CalcFormula = lookup(Item."PTV Specific Gravity" where("No." = field("Source Item No.")));
+            DataClassification = CustomerContent;
             DecimalPlaces = 0 : 4;
             Editable = false;
         }
         field(76005; "PTV VOC g/L"; Decimal)
         {
             Caption = 'VOC (g/L)';
-            FieldClass = FlowField;
-            CalcFormula = lookup(Item."PTV VOC g/L" where("No." = field("Source Item No.")));
+            DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 2;
             Editable = false;
         }
         field(76006; "PTV Solids By Weight %"; Decimal)
         {
             Caption = 'Solids By Weight %';
-            FieldClass = FlowField;
-            CalcFormula = lookup(Item."PTV Solids By Weight %" where("No." = field("Source Item No.")));
+            DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 2;
+            Editable = false;
+        }
+        field(76007; "PTV Lab L Target"; Decimal)
+        {
+            Caption = 'Lab L Target';
+            DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 2;
+            Editable = false;
+        }
+        field(76008; "PTV Lab a Target"; Decimal)
+        {
+            Caption = 'Lab a Target';
+            DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 2;
+            Editable = false;
+        }
+        field(76009; "PTV Lab b Target"; Decimal)
+        {
+            Caption = 'Lab b Target';
+            DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 2;
             Editable = false;
         }
     }

@@ -22,6 +22,20 @@ tableextension 76033 "PTV Sales Invoice Line" extends "Sales Invoice Line"
             Caption = 'Promised Delivery Date';
             DataClassification = CustomerContent;
         }
+        field(76006; "PTV Quantity Litres"; Decimal)
+        {
+            Caption = 'Qty. in Litres';
+            DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 5;
+            Editable = false;
+        }
+        field(76007; "PTV Litres per Base Unit"; Decimal)
+        {
+            Caption = 'Litres per Base Unit';
+            DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 5;
+            Editable = false;
+        }
     }
 
     keys

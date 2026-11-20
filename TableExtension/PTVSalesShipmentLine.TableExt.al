@@ -32,6 +32,20 @@ tableextension 76034 "PTV Sales Shipment Line" extends "Sales Shipment Line"
             Caption = 'In Full';
             DataClassification = CustomerContent;
         }
+        field(76006; "PTV Quantity Litres"; Decimal)
+        {
+            Caption = 'Qty. in Litres';
+            DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 5;
+            Editable = false;
+        }
+        field(76007; "PTV Litres per Base Unit"; Decimal)
+        {
+            Caption = 'Litres per Base Unit';
+            DataClassification = CustomerContent;
+            DecimalPlaces = 0 : 5;
+            Editable = false;
+        }
     }
 
     keys
