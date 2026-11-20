@@ -47,22 +47,44 @@ codeunit 76210 "PTV QC Spec-Template Sync"
         Item: Record Item;
         Shade: Record "PTV Shade";
         Spec: Record "PTV QC Paint Spec";
+        ProdOrder: Record "Production Order";
     begin
         if QltyInspectionHeader."Source Item No." = '' then
             exit;
-        Item.SetLoadFields("PTV Shade Code");
+        Item.SetLoadFields("PTV Shade Code", "PTV Specific Gravity", "PTV VOC g/L", "PTV Solids By Weight %");
         if not Item.Get(QltyInspectionHeader."Source Item No.") then
             exit;
-        QltyInspectionHeader."PTV Shade Code" := Item."PTV Shade Code";
-        if Shade.Get(Item."PTV Shade Code") then begin
+
+        if TriggeringRecordRef.Number = Database::"Production Order" then begin
+            TriggeringRecordRef.SetTable(ProdOrder);
+            if ProdOrder."PTV Shade Code" <> '' then
+                QltyInspectionHeader."PTV Shade Code" := ProdOrder."PTV Shade Code"
+            else
+                QltyInspectionHeader."PTV Shade Code" := Item."PTV Shade Code";
+            if ProdOrder."PTV Specific Gravity" <> 0 then
+                QltyInspectionHeader."PTV Specific Gravity" := ProdOrder."PTV Specific Gravity"
+            else
+                QltyInspectionHeader."PTV Specific Gravity" := Item."PTV Specific Gravity";
+        end else begin
+            QltyInspectionHeader."PTV Shade Code" := Item."PTV Shade Code";
+            QltyInspectionHeader."PTV Specific Gravity" := Item."PTV Specific Gravity";
+        end;
+
+        QltyInspectionHeader."PTV VOC g/L" := Item."PTV VOC g/L";
+        QltyInspectionHeader."PTV Solids By Weight %" := Item."PTV Solids By Weight %";
+
+        if Shade.Get(QltyInspectionHeader."PTV Shade Code") then begin
             QltyInspectionHeader."PTV Delta E Target" := 0;
             QltyInspectionHeader."PTV Delta E Min" := 0;
             QltyInspectionHeader."PTV Delta E Max" := Shade."Delta E Max";
+            QltyInspectionHeader."PTV Lab L Target" := Shade."Lab L Target";
+            QltyInspectionHeader."PTV Lab a Target" := Shade."Lab a Target";
+            QltyInspectionHeader."PTV Lab b Target" := Shade."Lab b Target";
         end;
         Spec.SetRange("Item No.", Item."No.");
         Spec.SetRange("Test Code", 'DE');
         Spec.SetRange(Status, Spec.Status::Certified);
-        Spec.SetFilter("Shade Code", '%1|%2', Item."PTV Shade Code", '');
+        Spec.SetFilter("Shade Code", '%1|%2', QltyInspectionHeader."PTV Shade Code", '');
         Spec.SetLoadFields("Shade Code", Target, "Min Limit", "Max Limit");
         if Spec.FindLast() then begin
             QltyInspectionHeader."PTV Delta E Target" := Spec.Target;
