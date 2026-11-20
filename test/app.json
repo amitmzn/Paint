@@ -1,0 +1,54 @@
+{
+  "id": "a7c3e1d2-4b58-4f0a-9c6e-1d2f8a0b5e77",
+  "name": "Paint Vertical Tests",
+  "publisher": "Alletec",
+  "version": "1.4.0.0",
+  "brief": "Tests for multi-level planning traceability.",
+  "description": "Exercises forecast pegging, semi-finished inheritance, multiple parents, and production order hand-off.",
+  "privacyStatement": "https://www.alletec.com",
+  "EULA": "https://www.alletec.com",
+  "help": "https://www.alletec.com",
+  "url": "https://www.alletec.com",
+  "dependencies": [
+    {
+      "id": "437dbf0e-84ff-417a-965d-ed2bb9650972",
+      "name": "Base Application",
+      "publisher": "Microsoft",
+      "version": "27.0.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "27.0.0.0"
+    },
+    {
+      "id": "4bcfb29f-363f-4810-9ba0-04d9d1d7739a",
+      "name": "Paint Vertical",
+      "publisher": "Alletec",
+      "version": "1.4.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "27.0.0.0",
+  "application": "27.0.0.0",
+  "idRanges": [
+    {
+      "from": 76380,
+      "to": 76399
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "includeSourceInSymbolFile": true,
+    "allowDownloadingSource": true
+  },
+  "features": [
+    "NoImplicitWith"
+  ],
+  "preprocessorSymbols": [
+    "PTV_TEST"
+  ],
+  "target": "Cloud",
+  "runtime": "14.0"
+}
