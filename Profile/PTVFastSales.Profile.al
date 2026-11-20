@@ -1,6 +1,6 @@
-profile 76280 "PTV FAST SALES"
+profile "PTV FAST SALES"
 {
-    Caption = 'Fast Sales';
+    Caption = 'Counter Sales';
     Enabled = true;
     ProfileDescription = 'Counter sales for a store. The home page shows the heading, open invoices, and posted sales for today.';
     Promoted = true;
