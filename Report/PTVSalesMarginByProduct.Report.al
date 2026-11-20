@@ -13,6 +13,7 @@ report 76155 "PTV Sales Margin by Product"
             DataItemTableView = where(Type = const(Item));
             column(ProductCode; "PTV Product Code") { }
             column(ShadeCode; "PTV Shade Code") { }
+            column(QuantityLitres; QuantityLitres) { }
             column(SalesAmount; "Line Amount") { }
             column(CostAmount; CostAmount) { }
             column(MarginAmount; MarginAmount) { }
@@ -20,7 +21,9 @@ report 76155 "PTV Sales Margin by Product"
             trigger OnAfterGetRecord()
             var
                 ValueEntry: Record "Value Entry";
+                UOMMgt: Codeunit "PTV UOM Mgt";
             begin
+                QuantityLitres := UOMMgt.PostedInvoiceLitres(SalesInvoiceLine);
                 CostAmount := 0;
                 ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Sales Invoice");
                 ValueEntry.SetRange("Document No.", "Document No.");
@@ -46,6 +49,7 @@ report 76155 "PTV Sales Margin by Product"
     }
 
     var
+        QuantityLitres: Decimal;
         CostAmount: Decimal;
         MarginAmount: Decimal;
 }

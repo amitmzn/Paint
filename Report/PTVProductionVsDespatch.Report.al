@@ -26,13 +26,13 @@ report 76154 "PTV Production vs Despatch"
                 ShippedLitres := 0;
                 ItemLedgerEntry.SetRange("Item No.", "No.");
                 ItemLedgerEntry.SetRange("Posting Date", StartDate, EndDate);
-                ItemLedgerEntry.SetLoadFields("Entry Type", Quantity, "Unit of Measure Code");
+                ItemLedgerEntry.SetLoadFields("Entry Type", Quantity, "Unit of Measure Code", "Qty. per Unit of Measure", "PTV Quantity Litres", "PTV Litres per Base Unit");
                 if ItemLedgerEntry.FindSet() then
                     repeat
                         if ItemLedgerEntry."Entry Type" = ItemLedgerEntry."Entry Type"::Output then
-                            ManufacturedLitres += UomMgt.LineQuantityToLitres("No.", ItemLedgerEntry."Unit of Measure Code", ItemLedgerEntry.Quantity);
+                            ManufacturedLitres += UomMgt.PostedLedgerLitres(ItemLedgerEntry);
                         if ItemLedgerEntry."Entry Type" = ItemLedgerEntry."Entry Type"::Sale then
-                            ShippedLitres += UomMgt.LineQuantityToLitres("No.", ItemLedgerEntry."Unit of Measure Code", -ItemLedgerEntry.Quantity);
+                            ShippedLitres -= UomMgt.PostedLedgerLitres(ItemLedgerEntry);
                     until ItemLedgerEntry.Next() = 0;
             end;
         }

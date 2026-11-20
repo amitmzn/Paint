@@ -15,6 +15,7 @@ report 76153 "PTV Item Expiry & Non-Moving"
             column(LotNo; "Lot No.") { }
             column(LocationCode; "Location Code") { }
             column(RemainingQty; "Remaining Quantity") { }
+            column(RemainingLitres; RemainingLitres) { }
             column(PostingDate; "Posting Date") { }
             column(ExpirationDate; "Expiration Date") { }
             column(AgeBucket; AgeBucket) { }
@@ -22,8 +23,10 @@ report 76153 "PTV Item Expiry & Non-Moving"
 
             trigger OnAfterGetRecord()
             var
+                UOMMgt: Codeunit "PTV UOM Mgt";
                 Age: Integer;
             begin
+                RemainingLitres := "Remaining Quantity" * UOMMgt.LedgerLitresPerBase(ItemLedgerEntry);
                 Age := WorkDate() - "Posting Date";
                 AgeBucket := Bucket(Age);
                 if "Expiration Date" = 0D then
@@ -45,6 +48,7 @@ report 76153 "PTV Item Expiry & Non-Moving"
     }
 
     var
+        RemainingLitres: Decimal;
         AgeBucket: Text[10];
         ExpiryBucket: Text[10];
 
