@@ -42,6 +42,21 @@ pageextension 76108 "PTV Qlty. Inspection" extends "Qlty. Inspection"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the item solids by weight percent.';
                 }
+                field("PTV Lab L Target"; Rec."PTV Lab L Target")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the CIELAB L target snapshotted when the inspection was created.';
+                }
+                field("PTV Lab a Target"; Rec."PTV Lab a Target")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the CIELAB a target snapshotted when the inspection was created.';
+                }
+                field("PTV Lab b Target"; Rec."PTV Lab b Target")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the CIELAB b target snapshotted when the inspection was created.';
+                }
             }
         }
     }

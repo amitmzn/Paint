@@ -47,7 +47,11 @@ pageextension 76102 "PTV Sales Order Subform" extends "Sales Order Subform"
     var
         UOMMgt: Codeunit "PTV UOM Mgt";
     begin
-        PTVQtyLitres := UOMMgt.LineQuantityToLitres(Rec."No.", Rec."Unit of Measure Code", Rec.Quantity);
+        Clear(PTVQtyLitres);
+        Clear(PTVQtyKg);
+        if Rec.Type <> Rec.Type::Item then
+            exit;
+        PTVQtyLitres := UOMMgt.TransactionLitres(Rec."Unit of Measure Code", Rec.Quantity, Rec."Quantity (Base)", UOMMgt.LitresPerBaseUnit(Rec."No."));
         PTVQtyKg := UOMMgt.WeightFromVolume(PTVQtyLitres, UOMMgt.GetSpecificGravity(Rec."No."));
     end;
 
