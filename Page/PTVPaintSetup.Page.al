@@ -54,7 +54,7 @@ page 76060 "PTV Paint Setup"
             }
             group(FastSales)
             {
-                Caption = 'Fast Sales';
+                Caption = 'Counter Sales';
                 field("Default Cash Customer"; Rec."Default Cash Customer")
                 {
                     ToolTip = 'Specifies the cash customer used when the user has no store on User Setup.';
@@ -65,7 +65,7 @@ page 76060 "PTV Paint Setup"
                 }
                 field("Role Center Heading"; Rec."Role Center Heading")
                 {
-                    ToolTip = 'Specifies whether the Fast Sales role center shows the default heading, a custom heading, or no heading.';
+                    ToolTip = 'Specifies whether the Counter Sales role center shows the default heading, a custom heading, or no heading.';
                 }
                 field("Custom Role Center Heading"; Rec."Custom Role Center Heading")
                 {
@@ -94,7 +94,7 @@ page 76060 "PTV Paint Setup"
             action(FastSalesStores)
             {
                 ApplicationArea = All;
-                Caption = 'Fast Sales Stores';
+                Caption = 'Counter Sales Stores';
                 Image = Setup;
                 RunObject = page "PTV Fast Sales Stores";
                 ToolTip = 'Set the cash customer, responsibility centre, and barcode scanning for each store.';
