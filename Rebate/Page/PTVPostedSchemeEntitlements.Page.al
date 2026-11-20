@@ -25,6 +25,18 @@ page 77070 "PTV Posted Scheme Entitlements"
                 {
                     ToolTip = 'Specifies the customer number.';
                 }
+                field("Qualification Tier Code"; Rec."Qualification Tier Code")
+                {
+                    ToolTip = 'Specifies the qualification tier code.';
+                }
+                field("FOC Reviewed By"; Rec."FOC Reviewed By")
+                {
+                    ToolTip = 'Specifies the foc reviewed by.';
+                }
+                field("FOC Reviewed On"; Rec."FOC Reviewed On")
+                {
+                    ToolTip = 'Specifies the foc reviewed on.';
+                }
                 field("Scheme Product Group"; Rec."Scheme Product Group")
                 {
                     ToolTip = 'Specifies the scheme product group.';
