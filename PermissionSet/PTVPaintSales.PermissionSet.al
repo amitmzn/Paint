@@ -4,6 +4,9 @@ permissionset 76274 "PTV-PAINT-SALES"
     Assignable = true;
     Caption = 'Paint Sales';
     Permissions =
+        page "PTV Paint Role Center" = X,
+        page "PTV Paint Headline" = X,
+        page "PTV Paint Quick Links" = X,
         tabledata "PTV Paint Product" = R,
         tabledata "PTV Shade" = R,
         tabledata "PTV Pack" = R,

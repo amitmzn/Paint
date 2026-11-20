@@ -4,6 +4,9 @@ permissionset 76270 "PTV-PAINT-ADMIN"
     Assignable = true;
     Caption = 'Paint Admin';
     Permissions =
+        page "PTV Paint Role Center" = X,
+        page "PTV Paint Headline" = X,
+        page "PTV Paint Quick Links" = X,
         tabledata "PTV Paint Setup" = RIMD,
         tabledata "PTV Paint Product" = RIMD,
         tabledata "PTV Shade" = RIMD,
@@ -14,6 +17,7 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         tabledata "PTV QC Paint Spec" = RIMD,
         tabledata "PTV Fast Sales Store" = RIMD,
         tabledata "PTV Fast Sales Cue" = RIMD,
+        tabledata "PTV Instruction Master" = RIMD,
         tabledata "User Setup" = RM,
         tabledata "Item Tracking Code" = R,
         tabledata "Reservation Entry" = RIMD,
@@ -35,6 +39,7 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         table "PTV QC Paint Spec" = X,
         table "PTV Fast Sales Store" = X,
         table "PTV Fast Sales Cue" = X,
+        table "PTV Instruction Master" = X,
         page "PTV Paint Setup" = X,
         page "PTV Paint Products" = X,
         page "PTV Shades" = X,
@@ -53,6 +58,7 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         page "PTV Fast Sales Activities" = X,
         page "PTV Fast Sales Role Center" = X,
         page "PTV Posted Fast Sales" = X,
+        page "PTV Instruction Master" = X,
         page "User Setup" = X,
         page "Item Tracking Lines" = X,
         report "PTV Batch Sheet" = X,
