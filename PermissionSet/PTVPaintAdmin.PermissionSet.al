@@ -14,6 +14,8 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         tabledata "PTV QC Paint Spec" = RIMD,
         tabledata "PTV Fast Sales Store" = RIMD,
         tabledata "PTV Fast Sales Cue" = RIMD,
+        tabledata "PTV Planning Trace Entry" = RIMD,
+        tabledata "PTV Planning Trace Node" = RIMD,
         tabledata "User Setup" = RM,
         tabledata "Item Tracking Code" = R,
         tabledata "Reservation Entry" = RIMD,
@@ -35,6 +37,8 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         table "PTV QC Paint Spec" = X,
         table "PTV Fast Sales Store" = X,
         table "PTV Fast Sales Cue" = X,
+        table "PTV Planning Trace Entry" = X,
+        table "PTV Planning Trace Node" = X,
         page "PTV Paint Setup" = X,
         page "PTV Paint Products" = X,
         page "PTV Shades" = X,
@@ -53,6 +57,9 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         page "PTV Fast Sales Activities" = X,
         page "PTV Fast Sales Role Center" = X,
         page "PTV Posted Fast Sales" = X,
+        page "PTV Planning Trace Entries" = X,
+        page "PTV Planning Trace FactBox" = X,
+        page "PTV Planning Trace Tree" = X,
         page "User Setup" = X,
         page "Item Tracking Lines" = X,
         report "PTV Batch Sheet" = X,
@@ -77,5 +84,7 @@ permissionset 76270 "PTV-PAINT-ADMIN"
         codeunit "PTV QC Invoice Gate" = X,
         codeunit "PTV Sales PSP Propagation" = X,
         codeunit "PTV OTIF Subscriber" = X,
-        codeunit "PTV Fast Sales Mgt" = X;
+        codeunit "PTV Fast Sales Mgt" = X,
+        codeunit "PTV Planning Trace Mgt" = X,
+        codeunit "PTV Planning Trace Events" = X;
 }
