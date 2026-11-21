@@ -72,6 +72,30 @@ page 76060 "PTV Paint Setup"
                     ToolTip = 'Specifies the heading text when Role Center Heading is Custom.';
                 }
             }
+            group(FGAutoTransfer)
+            {
+                Caption = 'Finished Goods Auto-Transfer';
+                field("Auto Transfer FG On Finish"; Rec."Auto Transfer FG On Finish")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies that when an FG Paint production order is finished, it automatically transfers from the production location to the shipment location.';
+                }
+                field("FG Shipment Location"; Rec."FG Shipment Location")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the default warehouse or dispatch location to which finished goods are automatically transferred.';
+                }
+                field("FG Reclass Template Name"; Rec."FG Reclass Template Name")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the item reclassification journal template used for automated stock transfer.';
+                }
+                field("FG Reclass Batch Name"; Rec."FG Reclass Batch Name")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the item reclassification journal batch used for automated stock transfer.';
+                }
+            }
             group(Quarantine)
             {
                 Caption = 'Quarantine';
