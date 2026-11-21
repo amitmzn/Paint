@@ -91,6 +91,29 @@ table 76000 "PTV Paint Setup"
             Caption = 'Custom Heading';
             DataClassification = CustomerContent;
         }
+        field(76020; "Auto Transfer FG On Finish"; Boolean)
+        {
+            Caption = 'Auto Transfer FG On Finish';
+            DataClassification = CustomerContent;
+        }
+        field(76021; "FG Shipment Location"; Code[10])
+        {
+            Caption = 'FG Shipment Location Code';
+            DataClassification = CustomerContent;
+            TableRelation = Location.Code;
+        }
+        field(76022; "FG Reclass Template Name"; Code[10])
+        {
+            Caption = 'FG Reclass Template Name';
+            DataClassification = CustomerContent;
+            TableRelation = "Item Journal Template".Name where(Type = const(Transfer));
+        }
+        field(76023; "FG Reclass Batch Name"; Code[10])
+        {
+            Caption = 'FG Reclass Batch Name';
+            DataClassification = CustomerContent;
+            TableRelation = "Item Journal Batch".Name where("Journal Template Name" = field("FG Reclass Template Name"));
+        }
     }
 
     keys
