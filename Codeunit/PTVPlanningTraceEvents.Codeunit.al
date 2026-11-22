@@ -15,12 +15,6 @@ codeunit 76331 "PTV Planning Trace Events"
         TraceMgt.ClearPlanCache();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", OnAfterCalculatePlanFromWorksheet, '', false, false)]
-    local procedure ClearCacheAfterPlan(var Item: Record Item)
-    begin
-        TraceMgt.ClearPlanCache();
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Inventory Profile Offsetting", OnAfterForecastInitDemand, '', false, false)]
     local procedure CacheForecast(var InventoryProfile: Record "Inventory Profile"; ProductionForecastEntry: Record "Production Forecast Entry"; ItemNo: Code[20]; LocationCode: Code[10]; TotalForecastQty: Decimal)
     begin

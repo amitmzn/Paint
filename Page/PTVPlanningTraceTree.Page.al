@@ -16,7 +16,7 @@ page 76341 "PTV Planning Trace Tree"
         {
             repeater(Lines)
             {
-                IndentationColumn = Indentation;
+                IndentationColumn = Rec.Indentation;
                 IndentationControls = "Node Text";
 
                 field("Node Text"; Rec."Node Text")

@@ -365,14 +365,21 @@ codeunit 76330 "PTV Planning Trace Mgt"
         end else begin
             TemplateName := CopyStr(DemandProfile."Source ID", 1, MaxStrLen(TemplateName));
             BatchName := DemandProfile."Source Batch Name";
+            if DemandProfile."Source Prod. Order Line" <> 0 then
+                WorksheetLineNo := DemandProfile."Source Prod. Order Line";
             PlanningComponent.SetRange("Worksheet Template Name", TemplateName);
             PlanningComponent.SetRange("Worksheet Batch Name", BatchName);
+            if WorksheetLineNo <> 0 then
+                PlanningComponent.SetRange("Worksheet Line No.", WorksheetLineNo);
             PlanningComponent.SetRange("Line No.", DemandProfile."Source Ref. No.");
             if PlanningComponent.FindFirst() then
                 WorksheetLineNo := PlanningComponent."Worksheet Line No."
             else begin
                 PlanningComponent.SetRange("Line No.");
-                PlanningComponent.SetRange("Worksheet Line No.", DemandProfile."Source Ref. No.");
+                if WorksheetLineNo <> 0 then
+                    PlanningComponent.SetRange("Worksheet Line No.", WorksheetLineNo)
+                else
+                    PlanningComponent.SetRange("Worksheet Line No.", DemandProfile."Source Ref. No.");
                 if PlanningComponent.FindFirst() then
                     WorksheetLineNo := PlanningComponent."Worksheet Line No.";
             end;
@@ -833,7 +840,7 @@ codeunit 76330 "PTV Planning Trace Mgt"
 
     local procedure IsManufacturingSupply(RequisitionLine: Record "Requisition Line"): Boolean
     begin
-        if RequisitionLine."Replenishment System" in [RequisitionLine."Replenishment System"::Purchase, RequisitionLine."Replenishment System"::Transfer, RequisitionLine."Replenishment System"::Assembly] then
+        if RequisitionLine."Replenishment System" in [RequisitionLine."Replenishment System"::Transfer, RequisitionLine."Replenishment System"::Assembly] then
             exit(false);
         exit(true);
     end;
