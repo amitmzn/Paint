@@ -191,23 +191,53 @@ codeunit 76330 "PTV Planning Trace Mgt"
     /// <summary>
     /// Opens the traceability tree for a planning worksheet line.
     /// </summary>
-    procedure OpenTreeForRequisitionLine(ReqLine: Record "Requisition Line")
+    procedure OpenTreeForRequisitionLine(var ReqLine: Record "Requisition Line")
     var
         Tree: Page "PTV Planning Trace Tree";
+        RootOrderNo: Code[20];
     begin
-        Tree.SetRoot(ReqLine."PTV Root Demand Forecast", ReqLine."PTV Root FG Item No.", ReqLine."PTV Root FG Prod. Order No.");
+        RootOrderNo := ResolveRootOrderForReqLine(ReqLine);
+        RememberReqLineRootOrder(ReqLine, RootOrderNo);
+        Tree.SetRoot(ReqLine."PTV Root Demand Forecast", ReqLine."PTV Root FG Item No.", RootOrderNo);
         Tree.Run();
     end;
 
     /// <summary>
     /// Opens the traceability tree for a production order.
     /// </summary>
-    procedure OpenTreeForProdOrder(ProdOrder: Record "Production Order")
+    procedure OpenTreeForProdOrder(var ProdOrder: Record "Production Order")
     var
         Tree: Page "PTV Planning Trace Tree";
+        RootOrderNo: Code[20];
     begin
-        Tree.SetRoot(ProdOrder."PTV Root Demand Forecast", ProdOrder."PTV Root FG Item No.", ProdOrder."PTV Root FG Prod. Order No.");
+        RootOrderNo := ResolveRootOrderForProdOrder(ProdOrder);
+        RememberProdOrderRootOrder(ProdOrder, RootOrderNo);
+        Tree.SetRoot(ProdOrder."PTV Root Demand Forecast", ProdOrder."PTV Root FG Item No.", RootOrderNo);
         Tree.Run();
+    end;
+
+    /// <summary>
+    /// Returns the finished-good production order for a worksheet line, walking parent orders when the line has not stored it yet.
+    /// </summary>
+    procedure ResolveRootOrderForReqLine(ReqLine: Record "Requisition Line"): Code[20]
+    var
+        Trace: Record "PTV Planning Trace Entry";
+        Seen: Record "PTV Planning Trace Node" temporary;
+    begin
+        if ReqLine."PTV Root FG Prod. Order No." <> '' then
+            exit(ReqLine."PTV Root FG Prod. Order No.");
+        ApplyChildReqFilter(Trace, ReqLine);
+        exit(FindRootOrderFromTraces(Trace, Seen));
+    end;
+
+    /// <summary>
+    /// Returns the finished-good production order for a production order, walking parent orders when this order has not stored it yet.
+    /// </summary>
+    procedure ResolveRootOrderForProdOrder(ProdOrder: Record "Production Order"): Code[20]
+    var
+        Seen: Record "PTV Planning Trace Node" temporary;
+    begin
+        exit(FindRootOrderFromProdOrder(ProdOrder, Seen));
     end;
 
     /// <summary>
@@ -410,6 +440,8 @@ codeunit 76330 "PTV Planning Trace Mgt"
             Peg."Root FG Item No." := ProdOrder."Source No.";
             Peg."Root FG Order No." := ProdOrder."No.";
         end;
+        if (Peg."Root FG Order No." = '') and IsRootProdOrder(ProdOrder, Peg."Root FG Item No.") then
+            Peg."Root FG Order No." := ProdOrder."No.";
     end;
 
     local procedure ApplyPegToRequisitionLine(var RequisitionLine: Record "Requisition Line"; Peg: Record "PTV Planning Trace Entry"; MultipleParents: Boolean)
@@ -469,7 +501,7 @@ codeunit 76330 "PTV Planning Trace Mgt"
         ProdOrder."PTV Parent Wksh. Template" := ReqLine."PTV Parent Wksh. Template";
         ProdOrder."PTV Parent Wksh. Batch Name" := ReqLine."PTV Parent Wksh. Batch Name";
         ProdOrder."PTV Multiple Parents" := ReqLine."PTV Multiple Parents";
-        if IsRootProdOrder(ProdOrder, ProdOrder."PTV Root FG Item No.") or (ReqLine."No." = ReqLine."PTV Root FG Item No.") or (ReqLine."PTV Root FG Item No." = '') then
+        if IsRootSupply(ProdOrder, ReqLine."No.", ProdOrder."PTV Root FG Item No.") or (ReqLine."PTV Root FG Item No." = '') then
             ProdOrder."PTV Root FG Prod. Order No." := ProdOrder."No."
         else
             ProdOrder."PTV Root FG Prod. Order No." := ReqLine."PTV Root FG Prod. Order No.";
@@ -514,7 +546,7 @@ codeunit 76330 "PTV Planning Trace Mgt"
                 Trace."Child Line No." := 0;
                 Trace."Child Wksh. Template Name" := '';
                 Trace."Child Wksh. Batch Name" := '';
-                if IsRootProdOrder(ProdOrder, Trace."Root FG Item No.") then
+                if IsRootSupply(ProdOrder, ReqLine."No.", Trace."Root FG Item No.") then
                     Trace."Root FG Order No." := ProdOrder."No.";
                 Trace.Modify(true);
             until Trace.Next() = 0;
@@ -532,7 +564,7 @@ codeunit 76330 "PTV Planning Trace Mgt"
                 Trace."Parent Line No." := 0;
                 Trace."Parent Wksh. Template Name" := '';
                 Trace."Parent Wksh. Batch Name" := '';
-                if IsRootProdOrder(ProdOrder, Trace."Root FG Item No.") then
+                if IsRootSupply(ProdOrder, ReqLine."No.", Trace."Root FG Item No.") then
                     Trace."Root FG Order No." := ProdOrder."No.";
                 Trace.Modify(true);
             until Trace.Next() = 0;
@@ -601,14 +633,14 @@ codeunit 76330 "PTV Planning Trace Mgt"
         ProdOrder.SetRange("No.", OrderNo);
         if ProdOrder.FindSet(true) then
             repeat
-                Trace.SetRange("Child Document No.", ProdOrder."No.");
-                Trace.SetFilter("Child Document Type", '%1|%2|%3', Trace."Child Document Type"::"Planned Prod. Order", Trace."Child Document Type"::"Firm Planned Prod. Order", Trace."Child Document Type"::"Released Prod. Order");
+                FilterChildProdOrder(Trace, ProdOrder."No.");
                 PegCount := Trace.Count();
                 if PegCount > 0 then begin
                     Trace.FindFirst();
                     ProdOrder."PTV Root Demand Forecast" := Trace."Root Forecast Name";
                     ProdOrder."PTV Root FG Item No." := Trace."Root FG Item No.";
-                    ProdOrder."PTV Root FG Prod. Order No." := Trace."Root FG Order No.";
+                    if Trace."Root FG Order No." <> '' then
+                        ProdOrder."PTV Root FG Prod. Order No." := Trace."Root FG Order No.";
                     ProdOrder."PTV Parent Source Type" := Trace."Parent Document Type";
                     ProdOrder."PTV Parent Source No." := Trace."Parent Document No.";
                     ProdOrder."PTV Parent Source Line No." := Trace."Parent Line No.";
@@ -684,6 +716,7 @@ codeunit 76330 "PTV Planning Trace Mgt"
             Trace.SetRange("Parent Wksh. Batch Name", ParentBatch);
             Trace.SetRange("Parent Line No.", ParentLineNo);
         end;
+        // Carry-out clears the parent line on production-order pegs, while the tree node keeps the order line. Match the order, not one line.
         if RootForecast <> '' then
             Trace.SetRange("Root Forecast Name", RootForecast);
         if RootItemNo <> '' then
@@ -748,6 +781,11 @@ codeunit 76330 "PTV Planning Trace Mgt"
     var
         NextSeenNo: Integer;
     begin
+        if DocType <> DocType::"Planning Worksheet" then begin
+            LineNo := 0;
+            TemplateName := '';
+            BatchName := '';
+        end;
         Seen.Reset();
         Seen.SetRange("Document Type", DocType);
         Seen.SetRange("Document No.", DocNo);
@@ -810,6 +848,117 @@ codeunit 76330 "PTV Planning Trace Mgt"
     local procedure IsRootProdOrder(ProdOrder: Record "Production Order"; RootItemNo: Code[20]): Boolean
     begin
         exit((RootItemNo <> '') and (ProdOrder."Source No." = RootItemNo));
+    end;
+
+    local procedure IsRootSupply(ProdOrder: Record "Production Order"; SupplyItemNo: Code[20]; RootItemNo: Code[20]): Boolean
+    begin
+        if RootItemNo = '' then
+            exit(false);
+        if ProdOrder."Source No." = RootItemNo then
+            exit(true);
+        // OnInsertProdOrderOnAfterProdOrderInsert runs before Mfg. Carry Out Action assigns Source No.
+        exit((ProdOrder."Source No." = '') and (SupplyItemNo = RootItemNo));
+    end;
+
+    local procedure FindRootOrderFromProdOrder(ProdOrder: Record "Production Order"; var Seen: Record "PTV Planning Trace Node" temporary): Code[20]
+    var
+        Trace: Record "PTV Planning Trace Entry";
+    begin
+        if ProdOrder."No." = '' then
+            exit('');
+        if ProdOrder."PTV Root FG Prod. Order No." <> '' then
+            exit(ProdOrder."PTV Root FG Prod. Order No.");
+        if IsRootProdOrder(ProdOrder, ProdOrder."PTV Root FG Item No.") then
+            exit(ProdOrder."No.");
+        if not MarkSeen(Seen, SourceTypeFromProdOrder(ProdOrder), ProdOrder."No.", 0, '', '') then
+            exit('');
+        FilterChildProdOrder(Trace, ProdOrder."No.");
+        exit(FindRootOrderFromTraces(Trace, Seen));
+    end;
+
+    local procedure FindRootOrderFromTraces(var Trace: Record "PTV Planning Trace Entry"; var Seen: Record "PTV Planning Trace Node" temporary): Code[20]
+    var
+        ParentOrder: Record "Production Order";
+        Resolved: Code[20];
+    begin
+        if Trace.FindSet() then
+            repeat
+                if Trace."Root FG Order No." <> '' then
+                    exit(Trace."Root FG Order No.");
+                if IsProdOrderSourceType(Trace."Parent Document Type") and (Trace."Parent Document No." <> '') then begin
+                    ParentOrder.SetRange("No.", Trace."Parent Document No.");
+                    if ParentOrder.FindFirst() then begin
+                        Resolved := FindRootOrderFromProdOrder(ParentOrder, Seen);
+                        if Resolved <> '' then
+                            exit(Resolved);
+                    end;
+                end;
+            until Trace.Next() = 0;
+        exit('');
+    end;
+
+    local procedure RememberProdOrderRootOrder(var ProdOrder: Record "Production Order"; RootOrderNo: Code[20])
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        Trace: Record "PTV Planning Trace Entry";
+    begin
+        if (RootOrderNo = '') or (ProdOrder."No." = '') then
+            exit;
+        if ProdOrder."PTV Root FG Prod. Order No." = '' then begin
+            ProdOrder."PTV Root FG Prod. Order No." := RootOrderNo;
+            ProdOrder.Modify(false);
+        end;
+
+        ProdOrderLine.SetRange(Status, ProdOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProdOrder."No.");
+        ProdOrderLine.SetRange("PTV Root FG Prod. Order No.", '');
+        if ProdOrderLine.FindSet(true) then
+            repeat
+                ProdOrderLine."PTV Root FG Prod. Order No." := RootOrderNo;
+                ProdOrderLine.Modify(false);
+            until ProdOrderLine.Next() = 0;
+
+        FilterChildProdOrder(Trace, ProdOrder."No.");
+        Trace.SetRange("Root FG Order No.", '');
+        if Trace.FindSet(true) then
+            repeat
+                Trace."Root FG Order No." := RootOrderNo;
+                Trace.Modify(true);
+            until Trace.Next() = 0;
+    end;
+
+    local procedure RememberReqLineRootOrder(var ReqLine: Record "Requisition Line"; RootOrderNo: Code[20])
+    var
+        Trace: Record "PTV Planning Trace Entry";
+    begin
+        if (RootOrderNo = '') or (ReqLine."Line No." = 0) then
+            exit;
+        if ReqLine."PTV Root FG Prod. Order No." = '' then begin
+            ReqLine."PTV Root FG Prod. Order No." := RootOrderNo;
+            ReqLine.Modify(false);
+        end;
+        ApplyChildReqFilter(Trace, ReqLine);
+        Trace.SetRange("Root FG Order No.", '');
+        if Trace.FindSet(true) then
+            repeat
+                Trace."Root FG Order No." := RootOrderNo;
+                Trace.Modify(true);
+            until Trace.Next() = 0;
+    end;
+
+    local procedure FilterChildProdOrder(var Trace: Record "PTV Planning Trace Entry"; OrderNo: Code[20])
+    begin
+        Trace.Reset();
+        Trace.SetRange("Child Document No.", OrderNo);
+        Trace.SetFilter("Child Document Type", '%1|%2|%3', Trace."Child Document Type"::"Planned Prod. Order", Trace."Child Document Type"::"Firm Planned Prod. Order", Trace."Child Document Type"::"Released Prod. Order");
+    end;
+
+    local procedure IsProdOrderSourceType(SourceType: Enum "PTV Planning Source Type"): Boolean
+    begin
+        exit(SourceType in [
+            SourceType::"Planned Prod. Order",
+            SourceType::"Firm Planned Prod. Order",
+            SourceType::"Released Prod. Order"]);
     end;
 
     local procedure SourceTypeFromProdOrder(ProdOrder: Record "Production Order"): Enum "PTV Planning Source Type"

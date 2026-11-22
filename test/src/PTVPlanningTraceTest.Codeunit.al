@@ -14,6 +14,7 @@ codeunit 76380 "PTV Planning Trace Test"
         SfgItemTok: Label 'PTV-SFG', Locked = true;
         FgOrderTok: Label 'PTV-P-FG', Locked = true;
         SfgOrderTok: Label 'PTV-P-SFG', Locked = true;
+        CompItemTok: Label 'PTV-COMP', Locked = true;
 
     [Test]
     procedure ForecastStampsFinishedGoodLine()
@@ -162,6 +163,124 @@ codeunit 76380 "PTV Planning Trace Test"
         Assert.AreEqual(Enum::"PTV Planning Source Type"::"Firm Planned Prod. Order", SfgLine."PTV Parent Source Type", 'Status change did not update the child parent type.');
         Assert.AreEqual(FgOrderTok, SfgLine."PTV Parent Source No.", 'Status change changed the parent order number.');
         Assert.AreEqual(ForecastTok, FirmOrder."PTV Root Demand Forecast", 'The firm planned order lost the forecast.');
+    end;
+
+    [Test]
+    procedure ChildCarriedOutBeforeSourceNoStillJoinsFinishedGood()
+    var
+        FgLine: Record "Requisition Line";
+        SfgLine: Record "Requisition Line";
+        FgOrder: Record "Production Order";
+        FgOrderLine: Record "Prod. Order Line";
+        SfgOrder: Record "Production Order";
+        SfgOrderLine: Record "Prod. Order Line";
+        Node: Record "PTV Planning Trace Node" temporary;
+    begin
+        Initialize();
+        FgLine := CreateForecastLine(10000, FgItemTok, 10);
+        SfgLine := CreateComponentLine(FgLine, 20000, SfgItemTok, 4);
+
+        SfgOrder := CreateProdOrder(Enum::"Production Order Status"::"Firm Planned", SfgOrderTok, SfgItemTok);
+        SfgOrderLine := CreateProdOrderLine(SfgOrder, 10000, SfgItemTok);
+        ClearSourceNo(SfgOrder);
+        TraceMgt.HandOffProdOrderHeader(SfgOrder, SfgLine);
+        TraceMgt.HandOffProdOrderLine(SfgOrder, SfgOrderLine, SfgLine);
+
+        FgOrder := CreateProdOrder(Enum::"Production Order Status"::"Firm Planned", FgOrderTok, FgItemTok);
+        FgOrderLine := CreateProdOrderLine(FgOrder, 10000, FgItemTok);
+        ClearSourceNo(FgOrder);
+        TraceMgt.HandOffProdOrderHeader(FgOrder, FgLine);
+        TraceMgt.HandOffProdOrderLine(FgOrder, FgOrderLine, FgLine);
+
+        SfgOrder.Get(SfgOrder.Status, SfgOrder."No.");
+        Assert.AreEqual(FgOrderTok, SfgOrder."PTV Root FG Prod. Order No.", 'Semi-finished order did not inherit the finished-good order.');
+        Assert.AreEqual(FgOrderTok, SfgOrder."PTV Parent Source No.", 'Semi-finished order did not keep the finished-good parent.');
+        Assert.AreEqual(FgItemTok, SfgOrder."PTV Root FG Item No.", 'Semi-finished order lost the finished-good item.');
+
+        TraceMgt.BuildTree(Node, '', FgItemTok, SfgOrder."PTV Root FG Prod. Order No.");
+        AssertTreeNode(Node, FgOrderTok, 0);
+        AssertTreeNode(Node, SfgOrderTok, 1);
+    end;
+
+    [Test]
+    procedure ChildOrderWithoutStoredRootStillShowsParentChain()
+    var
+        FgLine: Record "Requisition Line";
+        SfgLine: Record "Requisition Line";
+        FgOrder: Record "Production Order";
+        FgOrderLine: Record "Prod. Order Line";
+        SfgOrder: Record "Production Order";
+        SfgOrderLine: Record "Prod. Order Line";
+        Trace: Record "PTV Planning Trace Entry";
+        Node: Record "PTV Planning Trace Node" temporary;
+        RootOrderNo: Code[20];
+    begin
+        Initialize();
+        FgLine := CreateForecastLine(10000, FgItemTok, 10);
+        SfgLine := CreateComponentLine(FgLine, 20000, SfgItemTok, 4);
+        FgOrder := CreateProdOrder(Enum::"Production Order Status"::"Firm Planned", FgOrderTok, FgItemTok);
+        FgOrderLine := CreateProdOrderLine(FgOrder, 10000, FgItemTok);
+        TraceMgt.HandOffProdOrderHeader(FgOrder, FgLine);
+        TraceMgt.HandOffProdOrderLine(FgOrder, FgOrderLine, FgLine);
+        SfgLine.Get(TemplateTok, BatchTok, SfgLine."Line No.");
+
+        SfgOrder := CreateProdOrder(Enum::"Production Order Status"::"Firm Planned", SfgOrderTok, SfgItemTok);
+        SfgOrderLine := CreateProdOrderLine(SfgOrder, 10000, SfgItemTok);
+        TraceMgt.HandOffProdOrderHeader(SfgOrder, SfgLine);
+        TraceMgt.HandOffProdOrderLine(SfgOrder, SfgOrderLine, SfgLine);
+
+        SfgOrder.Get(SfgOrder.Status, SfgOrder."No.");
+        SfgOrder."PTV Root FG Prod. Order No." := '';
+        SfgOrder.Modify(false);
+        Trace.SetRange("Child Document No.", SfgOrder."No.");
+        Trace.SetRange("Child Document Type", Trace."Child Document Type"::"Firm Planned Prod. Order");
+        if Trace.FindSet(true) then
+            repeat
+                Trace."Root FG Order No." := '';
+                Trace.Modify(false);
+            until Trace.Next() = 0;
+
+        RootOrderNo := TraceMgt.ResolveRootOrderForProdOrder(SfgOrder);
+        Assert.AreEqual(FgOrderTok, RootOrderNo, 'Opening the child order did not find the finished-good order.');
+        TraceMgt.BuildTree(Node, '', SfgOrder."PTV Root FG Item No.", RootOrderNo);
+        AssertTreeNode(Node, FgOrderTok, 0);
+        AssertTreeNode(Node, SfgOrderTok, 1);
+    end;
+
+    [Test]
+    procedure LowerLevelComponentStaysUnderItsProdOrder()
+    var
+        FgLine: Record "Requisition Line";
+        SfgLine: Record "Requisition Line";
+        CompLine: Record "Requisition Line";
+        FgOrder: Record "Production Order";
+        FgOrderLine: Record "Prod. Order Line";
+        SfgOrder: Record "Production Order";
+        SfgOrderLine: Record "Prod. Order Line";
+        Node: Record "PTV Planning Trace Node" temporary;
+    begin
+        Initialize();
+        FgLine := CreateForecastLine(10000, FgItemTok, 10);
+        SfgLine := CreateComponentLine(FgLine, 20000, SfgItemTok, 4);
+        CompLine := CreateComponentLine(SfgLine, 30000, CompItemTok, 2);
+        FgOrder := CreateProdOrder(Enum::"Production Order Status"::Planned, FgOrderTok, FgItemTok);
+        FgOrderLine := CreateProdOrderLine(FgOrder, 10000, FgItemTok);
+        TraceMgt.HandOffProdOrderHeader(FgOrder, FgLine);
+        TraceMgt.HandOffProdOrderLine(FgOrder, FgOrderLine, FgLine);
+        SfgLine.Get(TemplateTok, BatchTok, SfgLine."Line No.");
+
+        SfgOrder := CreateProdOrder(Enum::"Production Order Status"::Planned, SfgOrderTok, SfgItemTok);
+        SfgOrderLine := CreateProdOrderLine(SfgOrder, 10000, SfgItemTok);
+        TraceMgt.HandOffProdOrderHeader(SfgOrder, SfgLine);
+        TraceMgt.HandOffProdOrderLine(SfgOrder, SfgOrderLine, SfgLine);
+
+        CompLine.Get(TemplateTok, BatchTok, CompLine."Line No.");
+        Assert.AreEqual(SfgOrderTok, CompLine."PTV Parent Source No.", 'Component parent was not the semi-finished order.');
+        Assert.AreEqual(0, CompLine."PTV Parent Source Line No.", 'Carry-out should clear the parent line on the component.');
+
+        TraceMgt.BuildTree(Node, ForecastTok, FgItemTok, FgOrderTok);
+        AssertTreeNode(Node, SfgOrderTok, 2);
+        AssertTreeNode(Node, CompItemTok, 3);
     end;
 
     local procedure Initialize()
@@ -327,6 +446,21 @@ codeunit 76380 "PTV Planning Trace Test"
         DemandProfile."Due Date" := WorkDate();
         DemandProfile."Remaining Quantity (Base)" := Qty;
         exit(DemandProfile);
+    end;
+
+    local procedure AssertTreeNode(var Node: Record "PTV Planning Trace Node" temporary; DocumentNo: Code[20]; ExpectedIndent: Integer)
+    begin
+        Node.Reset();
+        Node.SetRange("Document No.", DocumentNo);
+        Assert.IsTrue(Node.FindFirst(), StrSubstNo('Tree is missing document %1.', DocumentNo));
+        Assert.AreEqual(1, Node.Count(), StrSubstNo('Tree repeated document %1.', DocumentNo));
+        Assert.AreEqual(ExpectedIndent, Node.Indentation, StrSubstNo('Tree indented document %1 at the wrong level.', DocumentNo));
+    end;
+
+    local procedure ClearSourceNo(var ProdOrder: Record "Production Order")
+    begin
+        ProdOrder."Source No." := '';
+        ProdOrder.Modify(false);
     end;
 
     local procedure CreateProdOrder(Status: Enum "Production Order Status"; OrderNo: Code[20]; ItemNo: Code[20]): Record "Production Order"
